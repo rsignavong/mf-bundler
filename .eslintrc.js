@@ -15,11 +15,9 @@ module.exports = {
     ecmaVersion: 2018,
     sourceType: 'module'
   },
-  plugins: ['prettier', 'react'],
+  plugins: ['prettier'],
   rules: {
     quotes: ['error', 'double', {allowTemplateLiterals: true}],
     'prettier/prettier': 'error',
-    'react/jsx-uses-react': 'error',
-    'react/jsx-uses-vars': 'error'
   }
 }
