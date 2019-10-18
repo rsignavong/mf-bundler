@@ -3,12 +3,11 @@
 import bluebird from 'bluebird';
 import {exec} from 'child_process';
 import program from 'commander';
-import {promisify} from 'util';
-import {mkdirSync, readdirSync} from 'fs';
+import {existsSync, mkdirSync, readdirSync} from 'fs';
 import kebabCase from 'lodash.kebabcase';
 
 const logColor = '\x1b[34m%s\x1b[0m';
-const distDirectory = __dirname + '/dist';
+const distDirectory = process.cwd() + '/dist';
 
 
 mkdirSync(distDirectory, {recursive: true});
@@ -26,18 +25,24 @@ program
 const NODE_ENV = program.environment || process.env.NODE_ENV || 'development';
 const domain = program.domain || 'app';
 const path = program.path || 'src/components/';
-const run = promisify(exec);
-
+const componentsPath = path.endsWith('/') ? path : path + '/';
 
 const components =
-  readdirSync(path, {withFileTypes: true})
-    .filter(dirent => dirent.isDirectory() && program.name ? program.name === dirent.name : true)
-    .map(dirent => {
-      const componentDirectory = `${distDirectory}/components/${kebabCase(domain)}-${dirent.name}/`;
-      mkdirSync(componentDirectory, {recursive: true});
-      run(`cd ${path} && npm ci && NODE_ENV=${NODE_ENV} npm run build && cp dist/* ${componentDirectory}`);
-    });
-
+  readdirSync(componentsPath, {withFileTypes: true})
+    .filter(dirent => {
+      if (!dirent.isDirectory()) return false;
+      if (program.component && program.component !== dirent.name) return false;
+      if (!existsSync(componentsPath + dirent.name + '/package-lock.json')) return false;
+      return true;
+    })
+    .map(dirent => new Promise((resolve, reject) => {
+      const componentDistDirectory = `${distDirectory}/components/${kebabCase(domain)}-${dirent.name}/`;
+      mkdirSync(componentDistDirectory, {recursive: true});
+      console.log(logColor, `Installing dependencies for ${dirent.name}...`);
+      const pid = exec(`cd ${componentsPath + dirent.name} && npm ci && NODE_ENV=${NODE_ENV} npm run build && cp dist/* ${componentDistDirectory}`);
+      pid.stderr.on('data', reject);
+      pid.on('close', resolve);
+    }));
 
 bluebird.all(components).then(() => {
   console.log(logColor, 'Building component.json...');

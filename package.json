@@ -2,9 +2,12 @@
   "name": "mf-bundler",
   "version": "0.0.1",
   "description": "Bundle MicroFrontend without pain",
-  "main": "src/mf-bundler.js",
+  "main": "dist/mf-bundle.js",
   "bin": {
-    "mf-bundle": "./src/mf-bundler.js"
+    "mf-bundle": "./dist/mf-bundle.js"
+  },
+  "scripts": {
+    "build": "rollup -c"
   },
   "author": "Rocky Signavong",
   "license": "ISC",
@@ -14,9 +17,20 @@
     "lodash.kebabcase": "^4.1.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.6.4",
+    "@babel/plugin-proposal-class-properties": "^7.0.0",
+    "@babel/plugin-proposal-json-strings": "^7.0.0",
+    "@babel/plugin-syntax-dynamic-import": "^7.0.0",
+    "@babel/plugin-syntax-import-meta": "^7.0.0",
+    "@babel/preset-env": "^7.6.3",
     "eslint": "^6.5.1",
     "eslint-config-prettier": "^6.4.0",
     "eslint-plugin-prettier": "^3.1.1",
-    "prettier": "^1.18.2"
+    "prettier": "^1.18.2",
+    "rollup": "^1.24.0",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-hashbang": "^2.2.2",
+    "rollup-plugin-node-resolve": "^5.2.0"
   }
 }
