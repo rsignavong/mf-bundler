@@ -39,7 +39,7 @@ const components =
       const componentDistDirectory = `${distDirectory}/components/${kebabCase(domain)}-${dirent.name}/`;
       mkdirSync(componentDistDirectory, {recursive: true});
       console.log(logColor, `Installing dependencies for ${dirent.name}...`);
-      const pid = exec(`cd ${componentsPath + dirent.name} && npm ci && NODE_ENV=${NODE_ENV} npm run build && cp dist/* ${componentDistDirectory}`);
+      const pid = exec(`cd ${componentsPath + dirent.name} && npm run dependencies && NODE_ENV=${NODE_ENV} npm run build && cp dist/* ${componentDistDirectory}`);
       pid.stderr.on('data', reject);
       pid.on('close', resolve);
     }));
