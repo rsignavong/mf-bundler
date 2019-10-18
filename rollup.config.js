@@ -5,7 +5,6 @@ import hashbang from 'rollup-plugin-hashbang';
 import nodeResolve from 'rollup-plugin-node-resolve';
 
 export default {
-  banner: '#!/usr/bin/env node',
   input: 'src/mf-bundler.js',
   output: {
     file: 'dist/mf-bundle.js',
