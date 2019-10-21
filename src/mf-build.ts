@@ -13,7 +13,6 @@ program
   .option('-p, --path <path>', 'Define component(s) root path. Default to \'src/components/\'')
   .parse(process.argv);
 
-
 const env = program.environment || process.env.NODE_ENV || 'development';
 const path = program.path || 'src/components/';
 const componentsPath = path.endsWith('/') ? path : path + '/';
@@ -30,5 +29,3 @@ const config: CommandConfig = {
 }
 
 command(config);
-
-
