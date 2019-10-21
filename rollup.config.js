@@ -3,11 +3,12 @@ import babel from 'rollup-plugin-babel';
 import commonjs from 'rollup-plugin-commonjs';
 import hashbang from 'rollup-plugin-hashbang';
 import nodeResolve from 'rollup-plugin-node-resolve';
+import typescript from 'rollup-plugin-typescript';
 
 export default {
-  input: 'src/mf-bundler.js',
+  input: ['src/mf-build.ts', 'src/mf-bundle.ts'],
   output: {
-    file: 'dist/mf-bundle.js',
+    dir: 'dist',
     format: 'cjs'
   },
   plugins: [
@@ -24,5 +25,6 @@ export default {
     }),
     hashbang(),
     nodeResolve(),
+    typescript()
   ],
 }
