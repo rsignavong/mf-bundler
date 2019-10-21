@@ -1,31 +1,41 @@
 #!/usr/bin/env node
 
-import {exec, ChildProcess} from 'child_process';
-import program from 'commander';
-import {Dirent} from 'fs';
-import color from './core/color';
-import {command, CommandConfig} from './core/command';
+import { exec } from "child_process";
+import program from "commander";
+import { Dirent } from "fs";
+
+import color from "./core/color";
+import { CommandConfig, ComponentProcess, command } from "./core/command";
 
 program
-  .version('1.0.0')
-  .option('-c, --component <component>', 'Build a specific component.')
-  .option('-e, --environment <environment>', 'Set NODE_ENV environment variable. Default to \'development\'')
-  .option('-p, --path <path>', 'Define component(s) root path. Default to \'src/components/\'')
+  .version("1.0.0")
+  .option("-c, --component <component>", "Build a specific component.")
+  .option(
+    "-e, --environment <environment>",
+    "Set NODE_ENV environment variable. Default to 'development'"
+  )
+  .option(
+    "-p, --path <path>",
+    "Define component(s) root path. Default to 'src/components/'"
+  )
   .parse(process.argv);
 
-const env = program.environment || process.env.NODE_ENV || 'development';
-const path = program.path || 'src/components/';
-const componentsPath = path.endsWith('/') ? path : path + '/';
+const env = program.environment || process.env.NODE_ENV || "development";
+const path = program.path || "src/components/";
+const componentsPath = path.endsWith("/") ? path : `${path}/`;
 
-const componentProcess = ({name}: Dirent): ChildProcess => {
+const componentProcess = ({ name }: Dirent): ComponentProcess => {
   console.log(color.blue, `Installing dependencies for ${name}...`);
-  return exec(`cd ${componentsPath + name} && npm ci && NODE_ENV=${env} npm run build`);
-}
+  const process = exec(
+    `cd ${componentsPath + name} && npm ci && NODE_ENV=${env} npm run build`
+  );
+  return { name, process };
+};
 
 const config: CommandConfig = {
   componentName: program.component,
   componentProcess,
   componentsPath,
-}
+};
 
 command(config);

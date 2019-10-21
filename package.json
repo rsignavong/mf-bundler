@@ -9,12 +9,12 @@
     "mf-test": "./dist/mf-test.js"
   },
   "scripts": {
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "lint": "tslint --fix -p ."
   },
   "author": "Rocky Signavong",
   "license": "ISC",
   "dependencies": {
-    "@types/lodash.kebabcase": "^4.1.6",
     "bluebird": "^3.7.1",
     "commander": "^3.0.2",
     "lodash.kebabcase": "^4.1.1"
@@ -26,17 +26,24 @@
     "@babel/plugin-syntax-dynamic-import": "^7.0.0",
     "@babel/plugin-syntax-import-meta": "^7.0.0",
     "@babel/preset-env": "^7.6.3",
+    "@types/bluebird": "^3.5.28",
+    "@types/lodash.kebabcase": "^4.1.6",
+    "@types/node": "^12.11.1",
     "eslint": "^6.5.1",
     "eslint-config-prettier": "^6.4.0",
     "eslint-plugin-prettier": "^3.1.1",
     "prettier": "^1.18.2",
     "rollup": "^1.24.0",
     "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-clean": "^1.0.0",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-hashbang": "^2.2.2",
     "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-typescript": "^1.0.1",
+    "rollup-plugin-typescript2": "^0.24.3",
     "tslib": "^1.10.0",
+    "tslint": "^5.20.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-plugin-prettier": "^2.0.1",
     "typescript": "^3.6.4"
   }
 }
