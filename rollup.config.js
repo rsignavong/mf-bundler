@@ -18,10 +18,10 @@ export default {
     format: 'cjs'
   },
   plugins: [
+    clean(),
     babel({
       exclude: "node_modules/**",
     }),
-    clean(),
     commonjs({
       include: [
         'node_modules/**',

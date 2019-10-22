@@ -2,7 +2,15 @@
   "name": "mf-bundler",
   "version": "0.0.1",
   "description": "Bundle MicroFrontend without pain",
-  "main": "dist/mf-bundle.js",
+  "engines": {
+    "node": ">=12.13.0"
+  },
+  "files": [
+    "./dist/mf-build.js",
+    "./dist/mf-bundle.js",
+    "./dist/mf-clean.js",
+    "./dist/mf-test.js"
+  ],
   "bin": {
     "mf-build": "./dist/mf-build.js",
     "mf-bundle": "./dist/mf-bundle.js",
