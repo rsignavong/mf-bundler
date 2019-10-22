@@ -6,10 +6,10 @@
     "node": ">=12.13.0"
   },
   "files": [
-    "./dist/mf-build.js",
-    "./dist/mf-bundle.js",
-    "./dist/mf-clean.js",
-    "./dist/mf-test.js"
+    "dist/mf-build.js",
+    "dist/mf-bundle.js",
+    "dist/mf-clean.js",
+    "dist/mf-test.js"
   ],
   "bin": {
     "mf-build": "./dist/mf-build.js",
