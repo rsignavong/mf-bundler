@@ -7,7 +7,12 @@ import nodeResolve from 'rollup-plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
 
 export default {
-  input: ['src/mf-build.ts', 'src/mf-bundle.ts', 'src/mf-test.ts'],
+  input: [
+    'src/mf-build.ts',
+    'src/mf-bundle.ts',
+    'src/mf-clean.ts',
+    'src/mf-test.ts'
+  ],
   output: {
     dir: 'dist',
     format: 'cjs'

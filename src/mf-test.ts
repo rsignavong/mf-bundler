@@ -9,15 +9,17 @@ import { CommandConfig, ComponentProcess, command } from "./core/command";
 
 program
   .version("1.0.0")
-  .option("-c, --component <component>", "Build a specific component.")
+  .option("-c, --component <component>", "Test a specific component.")
   .option(
     "-p, --path <path>",
     "Define component(s) root path. Default to 'src/components/'"
   )
   .parse(process.argv);
 
-const path = program.path || "src/components/";
-const componentsPath = path.endsWith("/") ? path : `${path}/`;
+const programPath = program.path || "src/components/";
+const componentsPath = programPath.endsWith("/")
+  ? programPath
+  : `${programPath}/`;
 
 const componentProcess = ({ name }: Dirent): ComponentProcess => {
   console.log(color.blue, `Testing ${name}...`);

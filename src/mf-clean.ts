@@ -9,27 +9,33 @@ import { CommandConfig, ComponentProcess, command } from "./core/command";
 
 program
   .version("1.0.0")
-  .option("-c, --component <component>", "Build a specific component.")
   .option(
-    "-e, --environment <environment>",
-    "Set NODE_ENV environment variable. Default to 'development'"
+    "-c, --component <component>",
+    "Clean 'node_modules' of a specific component."
   )
+  .option("-d, --dist <dist>", "Clean specific 'dist'. Default to 'dist'")
+  .option("-e, --elm", "Add 'elm-stuff' directory to remove.")
   .option(
     "-p, --path <path>",
     "Define component(s) root path. Default to 'src/components/'"
   )
   .parse(process.argv);
 
-const env = program.environment || process.env.NODE_ENV || "development";
 const programPath = program.path || "src/components/";
 const componentsPath = programPath.endsWith("/")
   ? programPath
   : `${programPath}/`;
+const nodeModules = "node_modules";
+const dist = program.dist || "dist";
+const distAndModules = `${nodeModules} ${dist}`;
+const removeDirectory = program.elm
+  ? `${distAndModules} elm-stuff`
+  : distAndModules;
 
 const componentProcess = ({ name }: Dirent): ComponentProcess => {
-  console.log(color.blue, `Installing dependencies and building ${name}...`);
+  console.log(color.blue, `Cleaning ${name}...`);
   const process = exec(
-    `cd ${componentsPath + name} && npm ci && NODE_ENV=${env} npm run build`
+    `cd ${componentsPath + name} && rm -rf ${removeDirectory}`
   );
   return { name, process };
 };

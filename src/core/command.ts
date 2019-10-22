@@ -44,9 +44,13 @@ const command = ({
           cop.process.stdout!.on("data", data => {
             console.log(color.green, `${dirent.name}:`);
             console.log(data);
+            return;
           });
-          cop.process.stderr!.on("data", reject);
-          cop.process.on("close", resolve);
+          cop.process.stderr!.on("data", err => {
+            console.log(color.red, err);
+            return reject(err);
+          });
+          cop.process.on("close", _code => resolve(cop));
         })
     );
 
