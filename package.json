@@ -27,7 +27,8 @@
     "http-server": "^0.11.1",
     "lodash.isempty": "^4.4.0",
     "lodash.isfinite": "^3.3.2",
-    "lodash.kebabcase": "^4.1.1"
+    "lodash.kebabcase": "^4.1.1",
+    "cross-env": "^6.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.6.4",
