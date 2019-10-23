@@ -13,7 +13,7 @@ program
   .parse(process.argv);
 
 const programPort = program.port || 8080;
-const port = isFinite(programPort)
+const port = isFinite(parseInt(programPort, 10))
   ? programPort
   : () => {
       throw new Error("Port must be an integer value");
