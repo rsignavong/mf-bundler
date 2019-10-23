@@ -51,6 +51,7 @@ const command = ({
             return reject(err);
           });
           cop.process.on("close", _code => resolve(cop));
+          return;
         })
     );
 
@@ -60,6 +61,7 @@ const command = ({
     if (postProcess) {
       postProcess(results);
     }
+    return;
   });
 };
 

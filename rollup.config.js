@@ -11,6 +11,7 @@ export default {
     'src/mf-build.ts',
     'src/mf-bundle.ts',
     'src/mf-clean.ts',
+    'src/mf-serve.ts',
     'src/mf-test.ts'
   ],
   output: {
