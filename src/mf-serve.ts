@@ -15,7 +15,8 @@ const programPort = program.port || 8080;
 const port = isFinite(parseInt(programPort, 10))
   ? programPort
   : (() => {
-      throw new Error("Port must be an integer value");
+      console.log(color.red, "Port must be an integer value");
+      process.exit();
     })();
 
 console.log(color.blue, `Running dev server on port ${port}`);
