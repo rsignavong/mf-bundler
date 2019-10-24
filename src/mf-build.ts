@@ -29,7 +29,8 @@ const componentsPath = programPath.endsWith("/")
 const componentProcess = ({ name }: Dirent): ComponentProcess => {
   console.log(color.blue, `Installing dependencies and building ${name}...`);
   const process = exec(
-    `cd ${componentsPath + name} && npm ci && cross-env NODE_ENV=${env} npm run build`
+    `cd ${componentsPath +
+      name} && npm ci && cross-env NODE_ENV=${env} npm run build`
   );
   return { name, process };
 };
