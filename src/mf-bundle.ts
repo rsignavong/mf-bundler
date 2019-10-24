@@ -92,7 +92,7 @@ const postProcess = (results: ComponentProcess[]): void => {
         : jsFiles.shift();
       const manifestJs = jsFile
         ? {
-            url: `${dist}/${componentName}/${jsFile.name}`,
+            url: `/${componentName}/${jsFile.name}`,
           }
         : {};
 
@@ -103,7 +103,7 @@ const postProcess = (results: ComponentProcess[]): void => {
       const manifest = cssFile
         ? {
             ...manifestJs,
-            css: `${dist}/${componentName}/${cssFile.name}`,
+            css: `/${componentName}/${cssFile.name}`,
           }
         : manifestJs;
 
