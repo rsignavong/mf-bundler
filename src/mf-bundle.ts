@@ -39,11 +39,9 @@ program
 
 const dist = path.join("/", "dist");
 const distDirectory = `${process.cwd()}${dist}`;
-const namespace =
-  !isEmpty(program.namespace) && program.namespace.endsWith("-")
-    ? program.namespace
-    : `${program.namespace}-`;
-
+const namespace = program.namespace;
+const fullComponentName = (name: string): string =>
+  kebabCase(isEmpty(namespace) ? name : `${namespace}-${name}`);
 const programPath = program.path || path.join("src", "components");
 const componentsPath = path.join(programPath, "/");
 const manifestFile = path.join(distDirectory, "manifest.json");
@@ -60,9 +58,6 @@ try {
   console.log(color.yellow, "Manifest doesn't exists.");
   manifestData = {};
 }
-
-const fullComponentName = (name: string): string =>
-  kebabCase(isEmpty(namespace) ? name : namespace + name);
 
 const componentProcess = ({ name }: Dirent): ComponentProcess => {
   const componentDistDirectory = path.join(
