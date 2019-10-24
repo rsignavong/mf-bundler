@@ -11,7 +11,7 @@ import {
 } from "fs";
 import isEmpty from "lodash.isempty";
 import kebabCase from "lodash.kebabcase";
-import { extname } from "path";
+import { default as path, extname } from "path";
 
 import color from "./core/color";
 import { CommandConfig, ComponentProcess, command } from "./core/command";
@@ -37,19 +37,17 @@ program
   )
   .parse(process.argv);
 
-const dist = "/dist";
+const dist = path.join("/", "dist");
 const distDirectory = `${process.cwd()}${dist}`;
 const programDomain = program.domain || "app";
 const domain = programDomain.endsWith("-")
   ? programDomain
   : `${programDomain}-`;
-const programPath = program.path || "src/components/";
-const componentsPath = programPath.endsWith("/")
-  ? programPath
-  : `${programPath}/`;
-const manifestFile = `${distDirectory}/manifest.json`;
-const output = program.output || "dist/";
-const outputDist = output.endsWith("/") ? output : `${output}/`;
+const programPath = program.path || path.join("src", "components");
+const componentsPath = path.join(programPath, "/");
+const manifestFile = path.join(distDirectory, "manifest.json");
+const output = program.output || "dist";
+const outputDist = path.join(output, "/");
 
 mkdirSync(distDirectory, { recursive: true });
 
@@ -63,13 +61,16 @@ try {
 }
 
 const componentProcess = ({ name }: Dirent): ComponentProcess => {
-  const componentDistDirectory = `${distDirectory}/${kebabCase(
-    domain + name
-  )}/`;
+  const componentDistDirectory = path.join(
+    distDirectory,
+    kebabCase(domain + name),
+    "/"
+  );
   mkdirSync(componentDistDirectory, { recursive: true });
   console.log(color.blue, `Bundling ${name}...`);
   const process = exec(
-    `cd ${componentsPath + name} && cp ${outputDist}* ${componentDistDirectory}`
+    `cd ${componentsPath +
+      name} && copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`
   );
   return { name, process };
 };
@@ -80,8 +81,8 @@ const postProcess = (results: ComponentProcess[]): void => {
     extname(name).toLowerCase() === `.${type}`;
   const manifestJson = results.reduce(
     (acc: object, { name }: ComponentProcess) => {
-      const path = `${distDirectory}/${kebabCase(domain + name)}`;
-      const jsFiles = readdirSync(path, { withFileTypes: true }).filter(
+      const filePathpath = path.join(distDirectory, kebabCase(domain + name));
+      const jsFiles = readdirSync(filePathpath, { withFileTypes: true }).filter(
         filterByType("js")
       );
       const jsFile = program.entrypoint
@@ -95,9 +96,9 @@ const postProcess = (results: ComponentProcess[]): void => {
           }
         : {};
 
-      const cssFiles = readdirSync(path, { withFileTypes: true }).filter(
-        filterByType("css")
-      );
+      const cssFiles = readdirSync(filePathpath, {
+        withFileTypes: true,
+      }).filter(filterByType("css"));
       const cssFile = cssFiles.shift();
       const manifest = cssFile
         ? {
@@ -117,8 +118,10 @@ const postProcess = (results: ComponentProcess[]): void => {
     },
     manifestData
   );
-
-  writeFileSync(`${distDirectory}/manifest.json`, JSON.stringify(manifestJson));
+  writeFileSync(
+    path.join(distDirectory, "manifest.json"),
+    JSON.stringify(manifestJson)
+  );
   console.log(color.blue, "Done");
 };
 
