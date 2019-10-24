@@ -20,8 +20,8 @@ program
   .version("1.0.0")
   .option("-c, --component <component>", "Bundle a specific micro-frontend.")
   .option(
-    "-d, --domain <domain>",
-    "Define domain of these micro-frontends. Default to 'app'"
+    "-n, --namespace <namespace>",
+    "Define namespace of these micro-frontends."
   )
   .option(
     "-e, --entrypoint <entrypoint>",
@@ -39,10 +39,11 @@ program
 
 const dist = path.join("/", "dist");
 const distDirectory = `${process.cwd()}${dist}`;
-const programDomain = program.domain || "app";
-const domain = programDomain.endsWith("-")
-  ? programDomain
-  : `${programDomain}-`;
+const namespace =
+  !isEmpty(program.namespace) && program.namespace.endsWith("-")
+    ? program.namespace
+    : `${program.namespace}-`;
+
 const programPath = program.path || path.join("src", "components");
 const componentsPath = path.join(programPath, "/");
 const manifestFile = path.join(distDirectory, "manifest.json");
@@ -60,10 +61,13 @@ try {
   manifestData = {};
 }
 
+const fullComponentName = (name: string): string =>
+  kebabCase(isEmpty(namespace) ? name : namespace + name);
+
 const componentProcess = ({ name }: Dirent): ComponentProcess => {
   const componentDistDirectory = path.join(
     distDirectory,
-    kebabCase(domain + name),
+    fullComponentName(name),
     "/"
   );
   mkdirSync(componentDistDirectory, { recursive: true });
@@ -81,7 +85,8 @@ const postProcess = (results: ComponentProcess[]): void => {
     extname(name).toLowerCase() === `.${type}`;
   const manifestJson = results.reduce(
     (acc: object, { name }: ComponentProcess) => {
-      const filePathpath = path.join(distDirectory, kebabCase(domain + name));
+      const componentName = fullComponentName(name);
+      const filePathpath = path.join(distDirectory, componentName);
       const jsFiles = readdirSync(filePathpath, { withFileTypes: true }).filter(
         filterByType("js")
       );
@@ -92,7 +97,7 @@ const postProcess = (results: ComponentProcess[]): void => {
         : jsFiles.shift();
       const manifestJs = jsFile
         ? {
-            url: `${dist}/${kebabCase(domain + name)}/${jsFile.name}`,
+            url: `${dist}/${componentName}/${jsFile.name}`,
           }
         : {};
 
@@ -103,7 +108,7 @@ const postProcess = (results: ComponentProcess[]): void => {
       const manifest = cssFile
         ? {
             ...manifestJs,
-            css: `${dist}/${kebabCase(domain + name)}/${cssFile.name}`,
+            css: `${dist}/${componentName}/${cssFile.name}`,
           }
         : manifestJs;
 
@@ -113,7 +118,7 @@ const postProcess = (results: ComponentProcess[]): void => {
 
       return {
         ...acc,
-        [`${domain}${name}`]: manifest,
+        [componentName]: manifest,
       };
     },
     manifestData
