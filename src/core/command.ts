@@ -17,12 +17,12 @@ export interface CommandConfig {
   postProcess?(results: ComponentProcess[]): void;
 }
 
-const command = ({
+const command = async ({
   componentName,
   componentProcess,
   componentsPath,
   postProcess,
-}: CommandConfig): void => {
+}: CommandConfig): Promise<void> => {
   const components: Array<Promise<ComponentProcess>> = readdirSync(
     componentsPath,
     {
@@ -54,23 +54,19 @@ const command = ({
               return;
             });
           cop.process.stderr &&
-            cop.process.stderr.on("data", err => {
-              console.log(color.red, err);
-              return reject(err);
-            });
+            cop.process.stderr.on("data", err => console.log(color.red, err));
           cop.process.on("close", () => resolve(cop));
           return;
         })
     );
 
-  bluebird.all(components).then((results: ComponentProcess[]) => {
-    console.log(color.blue, "Done");
+  const results: ComponentProcess[] = await bluebird.all(components); 
+  console.log(color.blue, "Done");
 
-    if (postProcess) {
-      postProcess(results);
-    }
-    return;
-  });
+  if (postProcess) {
+    postProcess(results);
+  }
+  return;
 };
 
 export { command };

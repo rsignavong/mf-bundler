@@ -37,8 +37,7 @@ program
   )
   .parse(process.argv);
 
-const dist = path.join("/", "dist");
-const distDirectory = path.join(process.cwd(), dist);
+const distDirectory = path.join(process.cwd(), "dist");
 const namespace = program.namespace;
 const fullComponentName = (name: string): string =>
   kebabCase(isEmpty(namespace) ? name : `${namespace}-${name}`);
