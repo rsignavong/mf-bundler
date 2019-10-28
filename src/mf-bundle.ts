@@ -69,7 +69,7 @@ const componentProcess = ({ name }: Dirent): ComponentProcess => {
   console.log(color.blue, `Bundling ${name}...`);
   const process = exec(
     `cd ${componentsPath +
-      name} && copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`
+      name} && npm run build && copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`
   );
   return { name, process };
 };
