@@ -21,4 +21,4 @@ const port = isFinite(parseInt(programPort, 10))
     })();
 
 console.log(color.blue, `Running dev server on port ${port}`);
-exec(`cd dist && http-server -p ${port}`);
+exec(`cd dist && http-server -p ${port} --cors`);
