@@ -20,6 +20,10 @@ program
   .version("1.0.0")
   .option("-c, --component <component>", "Bundle a specific micro-frontend.")
   .option(
+    "-d, --domain <domain>",
+    "Define domain prefix to manifest url and css. e.g. http://localhost:3002 (without final '/'). Default to relative path."
+  )
+  .option(
     "-n, --namespace <namespace>",
     "Define namespace of these micro-frontends."
   )
@@ -46,6 +50,7 @@ const componentsPath = path.join(programPath, "/");
 const manifestFile = path.join(distDirectory, "manifest.json");
 const output = program.output || "dist";
 const outputDist = path.join(output, "/");
+const domain = program.domain || "";
 
 mkdirSync(distDirectory, { recursive: true });
 
@@ -93,7 +98,7 @@ const postProcess = (results: ComponentProcess[]): void => {
         : jsFiles.shift();
       const manifestJs = jsFile
         ? {
-            url: `/${componentName}/${jsFile.name}`,
+            url: `${domain}/${componentName}/${jsFile.name}`,
           }
         : {};
 
@@ -104,7 +109,7 @@ const postProcess = (results: ComponentProcess[]): void => {
       const manifest = cssFile
         ? {
             ...manifestJs,
-            css: `/${componentName}/${cssFile.name}`,
+            css: `${domain}/${componentName}/${cssFile.name}`,
           }
         : manifestJs;
 
