@@ -33,16 +33,16 @@ program
   )
   .option(
     "-p, --path <path>",
-    "Define component(s) root path. Default to 'src/components/'"
+    "Define component(s) root path. Default to 'apps/'"
   )
   .parse(process.argv);
 
 const dist = path.join("/", "dist");
-const distDirectory = `${process.cwd()}${dist}`;
+const distDirectory = path.join(process.cwd(), dist);
 const namespace = program.namespace;
 const fullComponentName = (name: string): string =>
   kebabCase(isEmpty(namespace) ? name : `${namespace}-${name}`);
-const programPath = program.path || path.join("src", "components");
+const programPath = program.path || "apps";
 const componentsPath = path.join(programPath, "/");
 const manifestFile = path.join(distDirectory, "manifest.json");
 const output = program.output || "dist";
@@ -68,8 +68,10 @@ const componentProcess = ({ name }: Dirent): ComponentProcess => {
   mkdirSync(componentDistDirectory, { recursive: true });
   console.log(color.blue, `Bundling ${name}...`);
   const process = exec(
-    `cd ${componentsPath +
-      name} && npm run build && copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`
+    `cd ${path.join(
+      componentsPath,
+      name
+    )} && npm run build && copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`
   );
   return { name, process };
 };
