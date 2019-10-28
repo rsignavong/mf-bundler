@@ -45,7 +45,7 @@ const command = async ({
     })
     .map(
       dirent =>
-        new Promise((resolve, reject) => {
+        new Promise(resolve => {
           const cop: ComponentProcess = componentProcess(dirent);
           cop.process.stdout &&
             cop.process.stdout.on("data", data => {
@@ -60,7 +60,7 @@ const command = async ({
         })
     );
 
-  const results: ComponentProcess[] = await bluebird.all(components); 
+  const results: ComponentProcess[] = await bluebird.all(components);
   console.log(color.blue, "Done");
 
   if (postProcess) {
