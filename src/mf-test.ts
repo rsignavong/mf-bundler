@@ -3,6 +3,7 @@
 import { exec } from "child_process";
 import program from "commander";
 import { Dirent } from "fs";
+import { default as path } from "path";
 
 import color from "./core/color";
 import { CommandConfig, ComponentProcess, command } from "./core/command";
@@ -12,18 +13,18 @@ program
   .option("-c, --component <component>", "Test a specific component.")
   .option(
     "-p, --path <path>",
-    "Define component(s) root path. Default to 'src/components/'"
+    "Define component(s) root path. Default to 'apps/'"
   )
   .parse(process.argv);
 
-const programPath = program.path || "src/components/";
+const programPath = program.path || "apps";
 const componentsPath = programPath.endsWith("/")
   ? programPath
-  : `${programPath}/`;
+  : path.join(programPath, "/");
 
 const componentProcess = ({ name }: Dirent): ComponentProcess => {
   console.log(color.blue, `Testing ${name}...`);
-  const process = exec(`cd ${componentsPath + name} && npm test`);
+  const process = exec(`cd ${path.join(componentsPath, name)} && npm test`);
   return { name, process };
 };
 

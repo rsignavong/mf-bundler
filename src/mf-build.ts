@@ -3,6 +3,7 @@
 import { exec } from "child_process";
 import program from "commander";
 import { Dirent } from "fs";
+import { default as path } from "path";
 
 import color from "./core/color";
 import { CommandConfig, ComponentProcess, command } from "./core/command";
@@ -16,21 +17,23 @@ program
   )
   .option(
     "-p, --path <path>",
-    "Define component(s) root path. Default to 'src/components/'"
+    "Define component(s) root path. Default to 'apps/'"
   )
   .parse(process.argv);
 
 const env = program.environment || process.env.NODE_ENV || "development";
-const programPath = program.path || "src/components/";
+const programPath = program.path || "apps";
 const componentsPath = programPath.endsWith("/")
   ? programPath
-  : `${programPath}/`;
+  : path.join(programPath, "/");
 
 const componentProcess = ({ name }: Dirent): ComponentProcess => {
   console.log(color.blue, `Installing dependencies and building ${name}...`);
   const process = exec(
-    `cd ${componentsPath +
-      name} && npm ci && cross-env NODE_ENV=${env} npm run build`
+    `cd ${path.join(
+      componentsPath,
+      name
+    )} && npm ci && cross-env NODE_ENV=${env} npm run build`
   );
   return { name, process };
 };

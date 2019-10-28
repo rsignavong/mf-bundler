@@ -3,6 +3,7 @@
 import { exec } from "child_process";
 import program from "commander";
 import { Dirent } from "fs";
+import { default as path } from "path";
 
 import color from "./core/color";
 import { CommandConfig, ComponentProcess, command } from "./core/command";
@@ -17,25 +18,27 @@ program
   .option("-e, --elm", "Add 'elm-stuff' directory to remove.")
   .option(
     "-p, --path <path>",
-    "Define component(s) root path. Default to 'src/components/'"
+    "Define component(s) root path. Default to 'apps/'"
   )
   .parse(process.argv);
 
-const programPath = program.path || "src/components/";
+const programPath = program.path || "apps";
 const componentsPath = programPath.endsWith("/")
   ? programPath
-  : `${programPath}/`;
+  : path.join(programPath, "/");
 const nodeModules = "node_modules";
 const dist = program.dist || "dist";
-const distAndModules = `${nodeModules} ${dist}`;
+const distAndModules = [nodeModules, dist];
 const removeDirectory = program.elm
-  ? `${distAndModules} elm-stuff`
+  ? [...distAndModules, "elm-stuff"]
   : distAndModules;
 
 const componentProcess = ({ name }: Dirent): ComponentProcess => {
   console.log(color.blue, `Cleaning ${name}...`);
   const process = exec(
-    `cd ${componentsPath + name} && rm -rf ${removeDirectory}`
+    `cd ${path.join(componentsPath, name)} && rm -rf ${removeDirectory.join(
+      " "
+    )}`
   );
   return { name, process };
 };

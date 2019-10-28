@@ -1,6 +1,7 @@
 import bluebird from "bluebird";
 import { ChildProcess } from "child_process";
 import { Dirent, existsSync, readdirSync } from "fs";
+import { default as path } from "path";
 
 import color from "./color";
 
@@ -35,7 +36,9 @@ const command = ({
       if (componentName && componentName !== dirent.name) {
         return false;
       }
-      if (!existsSync(`${componentsPath}${dirent.name}/package-lock.json`)) {
+      if (
+        !existsSync(path.join(componentsPath, dirent.name, "package-lock.json"))
+      ) {
         return false;
       }
       return true;
