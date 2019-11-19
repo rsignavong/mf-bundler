@@ -86,7 +86,7 @@ const componentProcess = ({ name }: Dirent): ComponentProcess => {
 };
 
 const postProcess = (results: ComponentProcess[]): void => {
-  console.log(color.blue, "Building manifest.json...");
+  console.log(color.blue, "Building mf-maestro.json...");
   const filterByType = (type: string) => ({ name }: Dirent): boolean =>
     extname(name).toLowerCase() === `.${type}`;
   const manifestJson = results.reduce(
@@ -129,10 +129,7 @@ const postProcess = (results: ComponentProcess[]): void => {
     },
     manifestData
   );
-  writeFileSync(
-    path.join(distDirectory, "manifest.json"),
-    JSON.stringify(manifestJson)
-  );
+  writeFileSync(manifestFile, JSON.stringify(manifestJson));
   console.log(color.blue, "Done");
 };
 
