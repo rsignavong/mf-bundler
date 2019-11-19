@@ -36,9 +36,10 @@ const removeDirectory = program.elm
 const componentProcess = ({ name }: Dirent): ComponentProcess => {
   console.log(color.blue, `Cleaning ${name}...`);
   const proc = exec(
-    `rm -rf ${path.join(process.cwd(), "dist")} && cd ${path.join(componentsPath, name)} && rm -rf ${removeDirectory.join(
-      " "
-    )}`
+    `rm -rf ${path.join(process.cwd(), "dist")} && cd ${path.join(
+      componentsPath,
+      name
+    )} && rm -rf ${removeDirectory.join(" ")}`
   );
   return { name, process: proc };
 };
