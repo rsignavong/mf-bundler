@@ -24,6 +24,10 @@ program
     "Define domain prefix to manifest url and css. e.g. http://localhost:3002 (without final '/'). Default to relative path."
   )
   .option(
+    "-e, --environment <environment>",
+    "Set NODE_ENV environment variable. Default to 'development'"
+  )
+  .option(
     "-n, --namespace <namespace>",
     "Define namespace of these micro-frontends."
   )
@@ -41,13 +45,14 @@ program
   )
   .parse(process.argv);
 
+const env = program.environment || process.env.NODE_ENV || "development";
 const distDirectory = path.join(process.cwd(), "dist");
 const namespace = program.namespace;
 const fullComponentName = (name: string): string =>
   kebabCase(isEmpty(namespace) ? name : `${namespace}-${name}`);
 const programPath = program.path || "apps";
 const componentsPath = path.join(programPath, "/");
-const manifestFile = path.join(distDirectory, "manifest.json");
+const manifestFile = path.join(distDirectory, "mf-maestro.json");
 const output = program.output || "dist";
 const outputDist = path.join(output, "/");
 const domain = program.domain || "";
@@ -75,7 +80,7 @@ const componentProcess = ({ name }: Dirent): ComponentProcess => {
     `cd ${path.join(
       componentsPath,
       name
-    )} && npm run build && copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`
+    )} && cross-env NODE_ENV=${env} npm run build && copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`
   );
   return { name, process };
 };
