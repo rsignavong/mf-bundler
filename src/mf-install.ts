@@ -33,7 +33,7 @@ const componentProcess = ({ name }: Dirent): ComponentProcess => {
     `cd ${path.join(
       componentsPath,
       name
-    )} && npm ci && cross-env NODE_ENV=${env} npm run build`
+    )} && npm ci`
   );
   return { name, process };
 };

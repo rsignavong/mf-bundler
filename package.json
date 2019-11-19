@@ -9,7 +9,7 @@
     "dist"
   ],
   "bin": {
-    "mf-build": "./dist/mf-build.js",
+    "mf-install": "./dist/mf-install.js",
     "mf-bundle": "./dist/mf-bundle.js",
     "mf-clean": "./dist/mf-clean.js",
     "mf-serve": "./dist/mf-serve.js",
@@ -17,7 +17,8 @@
   },
   "scripts": {
     "build": "rollup -c",
-    "lint": "eslint --fix --ext=ts src"
+    "lint": "eslint --fix --ext=ts src",
+    "prepare": "rm -rf dist/ && npm run build"
   },
   "author": "Rocky Signavong",
   "license": "ISC",

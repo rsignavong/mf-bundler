@@ -8,7 +8,7 @@ import typescript from 'rollup-plugin-typescript2';
 
 export default {
   input: [
-    'src/mf-build.ts',
+    'src/mf-install.ts',
     'src/mf-bundle.ts',
     'src/mf-clean.ts',
     'src/mf-serve.ts',
