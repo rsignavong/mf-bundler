@@ -36,6 +36,9 @@ const command = async ({
       if (componentName && componentName !== dirent.name) {
         return false;
       }
+      if (!existsSync(path.join(componentsPath, dirent.name, "package.json"))) {
+        return false;
+      }
       if (
         !existsSync(path.join(componentsPath, dirent.name, "package-lock.json"))
       ) {

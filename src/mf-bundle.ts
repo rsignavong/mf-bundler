@@ -16,6 +16,13 @@ import { default as path, extname } from "path";
 import color from "./core/color";
 import { CommandConfig, ComponentProcess, command } from "./core/command";
 
+interface Pkg {
+  name: string;
+  "mf-bundler": {
+    "ui-type": string;
+  };
+}
+
 program
   .version("1.0.0")
   .option("-c, --component <component>", "Bundle a specific micro-frontend.")
@@ -68,21 +75,42 @@ try {
   manifestData = {};
 }
 
+const getPkg = (name: string): Pkg => {
+  const pkgBuf = readFileSync(path.join(componentsPath, name, "package.json"));
+  const pkg = JSON.parse(pkgBuf.toString());
+  if (!pkg["mf-bundler"]) {
+    console.log(color.red, "Missing mf-bundler config");
+    process.exit(1);
+  }
+  if (!pkg["mf-bundler"]["ui-type"]) {
+    console.log(
+      color.red,
+      "Missing mf-bundler.ui-type: master, detail, new, edit"
+    );
+    process.exit(1);
+  }
+
+  return pkg;
+};
+
 const componentProcess = ({ name }: Dirent): ComponentProcess => {
+  const pkg = getPkg(name);
+  const uiType = pkg["mf-bundler"]["ui-type"];
   const componentDistDirectory = path.join(
     distDirectory,
-    fullComponentName(name),
+    fullComponentName(pkg.name),
+    uiType,
     "/"
   );
   mkdirSync(componentDistDirectory, { recursive: true });
-  console.log(color.blue, `Bundling ${name}...`);
-  const process = exec(
+  console.log(color.blue, `Bundling ${pkg.name}...`);
+  const proc = exec(
     `cd ${path.join(
       componentsPath,
       name
     )} && cross-env NODE_ENV=${env} npm run build && copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`
   );
-  return { name, process };
+  return { name, process: proc };
 };
 
 const postProcess = (results: ComponentProcess[]): void => {
@@ -91,8 +119,10 @@ const postProcess = (results: ComponentProcess[]): void => {
     extname(name).toLowerCase() === `.${type}`;
   const manifestJson = results.reduce(
     (acc: object, { name }: ComponentProcess) => {
-      const componentName = fullComponentName(name);
-      const filePathpath = path.join(distDirectory, componentName);
+      const pkg = getPkg(name);
+      const uiType = pkg["mf-bundler"]["ui-type"];
+      const componentName = fullComponentName(pkg.name);
+      const filePathpath = path.join(distDirectory, componentName, uiType);
       const jsFiles = readdirSync(filePathpath, { withFileTypes: true }).filter(
         filterByType("js")
       );
@@ -103,7 +133,7 @@ const postProcess = (results: ComponentProcess[]): void => {
         : jsFiles.shift();
       const manifestJs = jsFile
         ? {
-            url: `${domain}/${componentName}/${jsFile.name}`,
+            url: `${domain}/${componentName}/${uiType}/${jsFile.name}`,
           }
         : {};
 
@@ -114,7 +144,7 @@ const postProcess = (results: ComponentProcess[]): void => {
       const manifest = cssFile
         ? {
             ...manifestJs,
-            css: `${domain}/${componentName}/${cssFile.name}`,
+            css: `${domain}/${componentName}/${uiType}/${cssFile.name}`,
           }
         : manifestJs;
 
