@@ -33,7 +33,9 @@ const removeDirectory = program.elm
   ? [...distAndModules, "elm-stuff"]
   : distAndModules;
 
-const componentProcess = ({ name }: Dirent): ComponentProcess => {
+const componentProcess = async ({
+  name,
+}: Dirent): Promise<ComponentProcess> => {
   console.log(color.blue, `Cleaning ${name}...`);
   const proc = exec(
     `rm -rf ${path.join(process.cwd(), "dist")} && cd ${path.join(

@@ -22,7 +22,9 @@ const componentsPath = programPath.endsWith("/")
   ? programPath
   : path.join(programPath, "/");
 
-const componentProcess = ({ name }: Dirent): ComponentProcess => {
+const componentProcess = async ({
+  name,
+}: Dirent): Promise<ComponentProcess> => {
   console.log(color.blue, `Testing ${name}...`);
   const process = exec(`cd ${path.join(componentsPath, name)} && npm test`);
   return { name, process };

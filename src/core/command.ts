@@ -13,8 +13,8 @@ export interface ComponentProcess {
 export interface CommandConfig {
   componentsPath: string;
   componentName?: string;
-  componentProcess(dirent: Dirent): ComponentProcess;
-  postProcess?(results: ComponentProcess[]): void;
+  componentProcess(dirent: Dirent): Promise<ComponentProcess>;
+  postProcess?(results: ComponentProcess[]): Promise<void>;
 }
 
 const command = async ({
@@ -36,7 +36,11 @@ const command = async ({
       if (componentName && componentName !== dirent.name) {
         return false;
       }
-      if (!existsSync(path.join(componentsPath, dirent.name, "package.json"))) {
+      if (
+        !existsSync(
+          path.join(componentsPath, dirent.name, "mf-bundler.config.js")
+        )
+      ) {
         return false;
       }
       if (
@@ -49,16 +53,19 @@ const command = async ({
     .map(
       dirent =>
         new Promise(resolve => {
-          const cop: ComponentProcess = componentProcess(dirent);
-          cop.process.stdout &&
-            cop.process.stdout.on("data", data => {
-              console.log(color.green, `${dirent.name}:`);
-              console.log(data);
-              return;
-            });
-          cop.process.stderr &&
-            cop.process.stderr.on("data", err => console.log(color.red, err));
-          cop.process.on("close", () => resolve(cop));
+          componentProcess(dirent).then(cop => {
+            if (cop.process.stdout) {
+              cop.process.stdout.on("data", data => {
+                console.log(color.green, `${dirent.name}:`);
+                console.log(data);
+              });
+            }
+            if (cop.process.stderr) {
+              cop.process.stderr.on("data", err => console.log(color.red, err));
+              cop.process.on("close", () => resolve(cop));
+            }
+            return;
+          });
           return;
         })
     );
@@ -67,7 +74,7 @@ const command = async ({
   console.log(color.blue, "Done");
 
   if (postProcess) {
-    postProcess(results);
+    await postProcess(results);
   }
   return;
 };
