@@ -3,7 +3,6 @@
 import bluebird from "bluebird";
 import { exec } from "child_process";
 import program from "commander";
-import { runTransform } from "esm-to-cjs";
 import {
   Dirent,
   mkdirSync,
@@ -14,22 +13,18 @@ import {
 import isEmpty from "lodash.isempty";
 import forEach from "lodash.foreach";
 import groupBy from "lodash.groupby";
-import nodeEval from "node-eval";
 import { default as path, extname } from "path";
 
 import color from "./core/color";
-import { CommandConfig, ComponentProcess, command } from "./core/command";
-
-interface Bundler {
-  microAppName: string;
-  entity: string;
-  uiType: string;
-}
-
-interface BundlerByEntity {
-  microAppName: string;
-  uiType: string;
-}
+import { command } from "./core/command";
+import {
+  Bundler,
+  BundlerByEntity,
+  CommandConfig,
+  ComponentProcess,
+  MfEntity,
+} from "./core/types";
+import { getBundlerConfig, getGlobalBundlerConfig } from "./core/utils";
 
 program
   .version("1.0.0")
@@ -71,72 +66,44 @@ const domain = program.domain || "";
 
 mkdirSync(distDirectory, { recursive: true });
 
-const getBundlerConfig = async (name: string): Promise<Bundler> => {
-  const bundlerConfigSource = readFileSync(
-    path.resolve(componentsPath, name, "mf-bundler.config.js"),
-    "utf8"
-  );
-  const { config: bundlerConfig } = nodeEval(
-    runTransform(bundlerConfigSource.toString())
-  );
-  if (!bundlerConfig) {
-    console.log(
-      color.red,
-      `Missing config mf-bundler.config.js in ${name} app`
-    );
-    process.exit(1);
-  }
-  if (!bundlerConfig.microAppName) {
-    console.log(
-      color.red,
-      `Missing microAppName in mf-bundler.config.js of ${name} app`
-    );
-    process.exit(1);
-  }
-  if (!bundlerConfig.entity) {
-    console.log(
-      color.red,
-      `Missing entity in mf-bundler.config.js of ${name} app`
-    );
-    process.exit(1);
-  }
-  if (!bundlerConfig.uiType) {
-    console.log(
-      color.red,
-      `Missing uiType in mf-bundler.config.js of ${name} app (e.g. master, detail, new, edit, ...)`
-    );
-    process.exit(1);
-  }
-
-  return bundlerConfig;
-};
-
-const componentProcess = async ({
-  name,
-}: Dirent): Promise<ComponentProcess> => {
-  const { entity, uiType } = await getBundlerConfig(name);
+const componentProcess = async (
+  name: string,
+  entitiesPath: string,
+  entityConfig: MfEntity
+): Promise<ComponentProcess> => {
+  const { entity, uiType } = await getBundlerConfig(name, entitiesPath);
+  // TODO check entity name on micro app file === entityName on global file
+  // TODO get domain & distDir from conf file (entityConfig)
   const componentDists = [distDirectory, domain, entity, uiType, "/"];
   const componentDistDirectory = path.join(...componentDists);
   mkdirSync(componentDistDirectory, { recursive: true });
-  console.log(color.blue, `Bundling ${entity}...`);
+  console.log(color.blue, `Bundling ${entity}...${name}...`);
   const proc = exec(
     `cd ${path.join(
-      componentsPath,
+      entitiesPath,
       name
     )} && cross-env NODE_ENV=${env} npm run build && copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`,
-    err => err && process.exit(1)
+    (error, stdout, stderr) => {
+      if (error) {
+        console.log(color.red, error);
+        process.exit(1);
+      }
+    }
   );
   return { name, process: proc };
 };
 
-const postProcess = async (results: ComponentProcess[]): Promise<void> => {
+const postProcess = async (
+  results: ComponentProcess[],
+  componentsPath?: string
+): Promise<void> => {
   console.log(color.blue, "Building mf-maestro.json...");
   const filterByType = (type: string) => ({ name }: Dirent): boolean =>
     extname(name).toLowerCase() === `.${type}`;
   const bundlerConfig = await bluebird.reduce(
     results,
     async (acc: Array<Bundler>, { name }: ComponentProcess) => {
-      const bundler = await getBundlerConfig(name);
+      const bundler = await getBundlerConfig(name, componentsPath);
       return [...acc, bundler];
     },
     []
@@ -156,7 +123,10 @@ const postProcess = async (results: ComponentProcess[]): Promise<void> => {
         const content: Buffer = readFileSync(manifestFile);
         manifestData = JSON.parse(content.toString());
       } catch (_err) {
-        console.log(color.yellow, `Creating Manifest for ${entity}.`);
+        console.log(
+          color.yellow,
+          `Manifest doesn't exists for entity ${entity}.`
+        );
         manifestData = {};
       }
 
@@ -204,11 +174,13 @@ const postProcess = async (results: ComponentProcess[]): Promise<void> => {
   console.log(color.blue, "Done");
 };
 
-const config: CommandConfig = {
-  componentName: program.component,
-  componentProcess,
-  componentsPath,
-  postProcess,
-};
-
-command(config);
+getGlobalBundlerConfig().then((mfEntities: MfEntity[]) => {
+  const config: CommandConfig = {
+    componentName: program.component,
+    componentProcess,
+    componentsPath,
+    mfEntities,
+    postProcess,
+  };
+  command(config);
+});
