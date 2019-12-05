@@ -123,7 +123,8 @@ const componentProcess = async ({
     `cd ${path.join(
       componentsPath,
       name
-    )} && cross-env NODE_ENV=${env} npm run build && copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`
+    )} && cross-env NODE_ENV=${env} npm run build && copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`,
+    err => err && process.exit(1)
   );
   return { name, process: proc };
 };
@@ -155,10 +156,7 @@ const postProcess = async (results: ComponentProcess[]): Promise<void> => {
         const content: Buffer = readFileSync(manifestFile);
         manifestData = JSON.parse(content.toString());
       } catch (_err) {
-        console.log(
-          color.yellow,
-          `Manifest doesn't exists for entity ${entity}.`
-        );
+        console.log(color.yellow, `Creating Manifest for ${entity}.`);
         manifestData = {};
       }
 
