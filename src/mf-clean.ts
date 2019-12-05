@@ -41,7 +41,8 @@ const componentProcess = async ({
     `rm -rf ${path.join(process.cwd(), "dist")} && cd ${path.join(
       componentsPath,
       name
-    )} && rm -rf ${removeDirectory.join(" ")}`
+    )} && rm -rf ${removeDirectory.join(" ")}`,
+    err => err && process.exit(1)
   );
   return { name, process: proc };
 };

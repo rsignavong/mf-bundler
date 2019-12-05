@@ -26,8 +26,11 @@ const componentProcess = async ({
   name,
 }: Dirent): Promise<ComponentProcess> => {
   console.log(color.blue, `Testing ${name}...`);
-  const process = exec(`cd ${path.join(componentsPath, name)} && npm test`);
-  return { name, process };
+  const proc = exec(
+    `cd ${path.join(componentsPath, name)} && npm test`,
+    err => err && process.exit(1)
+  );
+  return { name, process: proc };
 };
 
 const config: CommandConfig = {
