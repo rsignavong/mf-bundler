@@ -1,26 +1,15 @@
 import bluebird from "bluebird";
-import { ChildProcess } from "child_process";
-import { Dirent, existsSync, readdirSync } from "fs";
-import { default as path } from "path";
-
+import { readdirSync } from "fs";
+import * as path from "path";
 import color from "./color";
+import { CommandConfig, ComponentProcess, MfEntity } from "./types";
+import { isProjectDir } from "./utils";
 
-export interface ComponentProcess {
-  name: string;
-  process: ChildProcess;
-}
-
-export interface CommandConfig {
-  componentsPath: string;
-  componentName?: string;
-  componentProcess(dirent: Dirent): Promise<ComponentProcess>;
-  postProcess?(results: ComponentProcess[]): Promise<void>;
-}
-
-const command = async ({
+const executeCommandProcess = async ({
   componentName,
   componentProcess,
   componentsPath,
+  mfEntities,
   postProcess,
 }: CommandConfig): Promise<void> => {
   const components: Array<Promise<ComponentProcess>> = readdirSync(
@@ -30,42 +19,28 @@ const command = async ({
     }
   )
     .filter(dirent => {
-      if (!dirent.isDirectory()) {
-        return false;
-      }
-      if (componentName && componentName !== dirent.name) {
-        return false;
-      }
-      if (
-        !existsSync(
-          path.join(componentsPath, dirent.name, "mf-bundler.config.js")
-        )
-      ) {
-        return false;
-      }
-      if (
-        !existsSync(path.join(componentsPath, dirent.name, "package-lock.json"))
-      ) {
-        return false;
-      }
-      return true;
+      return isProjectDir(dirent, componentName, componentsPath);
     })
     .map(
-      dirent =>
+      (dirent, index) =>
         new Promise(resolve => {
-          componentProcess(dirent).then(cop => {
-            if (cop.process.stdout) {
-              cop.process.stdout.on("data", data => {
-                console.log(color.green, `${dirent.name}:`);
-                console.log(data);
-              });
+          componentProcess(dirent.name, componentsPath, mfEntities[index]).then(
+            cop => {
+              if (cop.process.stdout) {
+                cop.process.stdout.on("data", data => {
+                  console.log(color.green, `${dirent.name}:`);
+                  console.log(data);
+                });
+              }
+              if (cop.process.stderr) {
+                cop.process.stderr.on("data", err =>
+                  console.log(color.red, err)
+                );
+                cop.process.on("close", () => resolve(cop));
+              }
+              return;
             }
-            if (cop.process.stderr) {
-              cop.process.stderr.on("data", err => console.log(color.red, err));
-              cop.process.on("close", () => resolve(cop));
-            }
-            return;
-          });
+          );
           return;
         })
     );
@@ -74,9 +49,28 @@ const command = async ({
   console.log(color.blue, "Done");
 
   if (postProcess) {
-    await postProcess(results);
+    await postProcess(results, componentsPath);
   }
   return;
+};
+
+const command = ({
+  componentName,
+  componentProcess,
+  componentsPath,
+  mfEntities,
+  postProcess,
+}: CommandConfig): Promise<void>[] => {
+  return mfEntities.map(async (entity: MfEntity) => {
+    const tmpComponentsPath = path.join(componentsPath, entity.name);
+    return await executeCommandProcess({
+      componentName,
+      componentProcess,
+      componentsPath: tmpComponentsPath,
+      mfEntities,
+      postProcess,
+    });
+  });
 };
 
 export { command };

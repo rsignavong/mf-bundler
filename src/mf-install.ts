@@ -2,11 +2,12 @@
 
 import { exec } from "child_process";
 import program from "commander";
-import { Dirent } from "fs";
 import { default as path } from "path";
 
 import color from "./core/color";
-import { CommandConfig, ComponentProcess, command } from "./core/command";
+import { command } from "./core/command";
+import { CommandConfig, ComponentProcess, MfEntity } from "./core/types";
+import { getGlobalBundlerConfig } from "./core/utils";
 
 program
   .version("1.0.0")
@@ -22,21 +23,29 @@ const componentsPath = programPath.endsWith("/")
   ? programPath
   : path.join(programPath, "/");
 
-const componentProcess = async ({
-  name,
-}: Dirent): Promise<ComponentProcess> => {
-  console.log(color.blue, `Installing dependencies and building ${name}...`);
+const componentProcess = async (
+  name: string,
+  entitiesPath: string
+): Promise<ComponentProcess> => {
+  console.log(color.blue, `Installing dependencies ${name}...`);
   const proc = exec(
-    `cd ${path.join(componentsPath, name)} && npm ci`,
-    err => err && process.exit(1)
+    `cd ${path.join(entitiesPath, name)} && npm ci`,
+    (error, stdout, stderr) => {
+      if (error) {
+        console.log(color.red, error);
+        process.exit(1);
+      }
+    }
   );
   return { name, process: proc };
 };
 
-const config: CommandConfig = {
-  componentName: program.component,
-  componentProcess,
-  componentsPath,
-};
-
-command(config);
+getGlobalBundlerConfig().then((mfEntities: MfEntity[]) => {
+  const config: CommandConfig = {
+    componentName: program.component,
+    componentProcess,
+    componentsPath,
+    mfEntities,
+  };
+  command(config);
+});

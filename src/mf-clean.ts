@@ -2,11 +2,11 @@
 
 import { exec } from "child_process";
 import program from "commander";
-import { Dirent } from "fs";
 import { default as path } from "path";
 
 import color from "./core/color";
-import { CommandConfig, ComponentProcess, command } from "./core/command";
+import { command } from "./core/command";
+import { CommandConfig, ComponentProcess } from "./core/types";
 
 program
   .version("1.0.0")
@@ -33,9 +33,10 @@ const removeDirectory = program.elm
   ? [...distAndModules, "elm-stuff"]
   : distAndModules;
 
-const componentProcess = async ({
-  name,
-}: Dirent): Promise<ComponentProcess> => {
+const componentProcess = async (
+  name: string,
+  entitiesPath: string
+): Promise<ComponentProcess> => {
   console.log(color.blue, `Cleaning ${name}...`);
   const proc = exec(
     `rm -rf ${path.join(process.cwd(), "dist")} && cd ${path.join(
