@@ -6,7 +6,8 @@ import { default as path } from "path";
 
 import color from "./core/color";
 import { command } from "./core/command";
-import { CommandConfig, ComponentProcess } from "./core/types";
+import { CommandConfig, ComponentProcess, MfEntity } from "./core/types";
+import { getGlobalBundlerConfig } from "./core/utils";
 
 program
   .version("1.0.0")
@@ -40,7 +41,7 @@ const componentProcess = async (
   console.log(color.blue, `Cleaning ${name}...`);
   const proc = exec(
     `rm -rf ${path.join(process.cwd(), "dist")} && cd ${path.join(
-      componentsPath,
+      entitiesPath,
       name
     )} && rm -rf ${removeDirectory.join(" ")}`,
     err => err && process.exit(1)
@@ -48,10 +49,12 @@ const componentProcess = async (
   return { name, process: proc };
 };
 
-const config: CommandConfig = {
-  componentName: program.component,
-  componentProcess,
-  componentsPath,
-};
-
-command(config);
+getGlobalBundlerConfig().then((mfEntities: MfEntity[]) => {
+  const config: CommandConfig = {
+    componentName: program.component,
+    componentProcess,
+    componentsPath,
+    mfEntities,
+  };
+  command(config);
+});
