@@ -29,7 +29,7 @@ const componentProcess = async (
 ): Promise<ComponentProcess> => {
   console.log(color.blue, `Installing dependencies ${name}...`);
   const proc = exec(
-    `cd ${path.join(entitiesPath, name)} && npm ci`,
+    `cd ${path.join(entitiesPath, name)} && ([ -f \"package-lock.json\" ] && npm ci || npm install)`,
     (error, stdout, stderr) => {
       if (error) {
         console.log(color.red, error);

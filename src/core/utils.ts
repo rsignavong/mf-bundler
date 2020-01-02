@@ -41,7 +41,7 @@ export const isProjectDir = (
     return false;
   }
   if (
-    !existsSync(path.join(componentsPath, dirent.name, "package-lock.json"))
+    !existsSync(path.join(componentsPath, dirent.name, "package.json"))
   ) {
     return false;
   }
