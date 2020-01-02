@@ -50,13 +50,16 @@ program
     "Define the output distributed folder of your micro-frontend. Default to 'dist/'"
   )
   .option(
+    "-t, --targetDir <targetDir>",
+    "Define where your manifest and ui will be built. Default to 'dist' in current directory"
+  ).option(
     "-r, --root <root>",
     "Define component(s) root path. Default to 'apps/'"
   )
   .parse(process.argv);
 
 const env = program.environment || process.env.NODE_ENV || "development";
-const distDirectory = path.join(process.cwd(), "dist");
+const distDirectory = path.join(process.cwd(), program.targetDir || "dist");
 const programRootPath = program.root || "apps";
 const componentsPath = path.join(programRootPath, "/");
 const output = program.output || "dist";
@@ -77,12 +80,9 @@ const componentProcess = async (
   const componentDists = [distDirectory, domain, entity, uiType, "/"];
   const componentDistDirectory = path.join(...componentDists);
   mkdirSync(componentDistDirectory, { recursive: true });
-  console.log(color.blue, `Bundling ${entity}...${name}...`);
+  console.log(color.blue, `Bundling ${entity}...${name}... and copy content from ${outputDist} to ${componentDistDirectory}`);
   const proc = exec(
-    `cd ${path.join(
-      entitiesPath,
-      name
-    )} && cross-env NODE_ENV=${env} npm run build && copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`,
+    `cd ${path.join(entitiesPath, name)} && cross-env NODE_ENV=${env} npm run build && copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`,
     (error, stdout, stderr) => {
       if (error) {
         console.log(color.red, error);
