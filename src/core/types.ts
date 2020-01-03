@@ -13,7 +13,8 @@ export interface BundlerByEntity {
 
 export interface ComponentProcess {
   name: string;
-  process: ChildProcess;
+  process?: ChildProcess;
+  syncResults?: Buffer | string;
 }
 
 export interface MfEntity {
@@ -35,4 +36,5 @@ export interface CommandConfig {
     results: ComponentProcess[],
     componentsPath?: string
   ): Promise<void>;
+  sequential?: boolean;
 }

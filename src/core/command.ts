@@ -11,6 +11,7 @@ const executeCommandProcess = async ({
   componentsPath,
   mfEntities,
   postProcess,
+  sequential,
 }: CommandConfig): Promise<void> => {
   const components: Array<Promise<ComponentProcess>> = readdirSync(
     componentsPath,
@@ -21,31 +22,34 @@ const executeCommandProcess = async ({
     .filter(dirent => {
       return isProjectDir(dirent, componentName, componentsPath);
     })
-    .map(
-      (dirent, index) =>
-        new Promise(resolve => {
-          componentProcess(dirent.name, componentsPath, mfEntities[index]).then(
-            cop => {
-              if (cop.process.stdout) {
-                cop.process.stdout.on("data", data => {
-                  console.log(color.green, `${dirent.name}:`);
-                  console.log(data);
-                });
-              }
-              if (cop.process.stderr) {
-                cop.process.stderr.on("data", err =>
-                  console.log(color.red, err)
-                );
-                cop.process.on("close", () => resolve(cop));
-              }
-              return;
-            }
-          );
-          return;
-        })
-    );
+    .map((dirent, index) => {
+      if (sequential) {
+        return componentProcess(dirent.name, componentsPath, mfEntities[index]);
+      }
 
-  const results: ComponentProcess[] = await bluebird.all(components);
+      return new Promise(resolve => {
+        componentProcess(dirent.name, componentsPath, mfEntities[index]).then(
+          cop => {
+            if (cop.process.stdout) {
+              cop.process.stdout.on("data", data => {
+                console.log(color.green, `${dirent.name}:`);
+                console.log(data);
+              });
+            }
+            if (cop.process.stderr) {
+              cop.process.stderr.on("data", err => console.log(color.red, err));
+              cop.process.on("close", () => resolve(cop));
+            }
+            return;
+          }
+        );
+        return;
+      });
+    });
+
+  const results: ComponentProcess[] = sequential
+    ? await bluebird.mapSeries(components, res => res)
+    : await bluebird.all(components);
   console.log(color.blue, "Done");
 
   if (postProcess) {
@@ -60,6 +64,7 @@ const command = ({
   componentsPath,
   mfEntities,
   postProcess,
+  sequential = false,
 }: CommandConfig): Promise<void>[] => {
   return mfEntities.map(async (entity: MfEntity) => {
     const tmpComponentsPath = path.join(componentsPath, entity.name);
@@ -69,6 +74,7 @@ const command = ({
       componentsPath: tmpComponentsPath,
       mfEntities,
       postProcess,
+      sequential,
     });
   });
 };

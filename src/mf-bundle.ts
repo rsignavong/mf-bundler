@@ -52,7 +52,8 @@ program
   .option(
     "-t, --targetDir <targetDir>",
     "Define where your manifest and ui will be built. Default to 'dist' in current directory"
-  ).option(
+  )
+  .option(
     "-r, --root <root>",
     "Define component(s) root path. Default to 'apps/'"
   )
@@ -80,9 +81,15 @@ const componentProcess = async (
   const componentDists = [distDirectory, domain, entity, uiType, "/"];
   const componentDistDirectory = path.join(...componentDists);
   mkdirSync(componentDistDirectory, { recursive: true });
-  console.log(color.blue, `Bundling ${entity}...${name}... and copy content from ${outputDist} to ${componentDistDirectory}`);
+  console.log(
+    color.blue,
+    `Bundling ${entity}...${name}... and copy content from ${outputDist} to ${componentDistDirectory}`
+  );
   const proc = exec(
-    `cd ${path.join(entitiesPath, name)} && cross-env NODE_ENV=${env} npm run build && copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`,
+    `cd ${path.join(
+      entitiesPath,
+      name
+    )} && cross-env NODE_ENV=${env} npm run build && copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`,
     (error, stdout, stderr) => {
       if (error) {
         console.log(color.red, error);

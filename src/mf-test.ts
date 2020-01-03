@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { exec } from "child_process";
+import { execSync } from "child_process";
 import program from "commander";
 import { default as path } from "path";
 
@@ -28,16 +28,16 @@ const componentProcess = async (
   entitiesPath: string
 ): Promise<ComponentProcess> => {
   console.log(color.blue, `Testing ${name}...`);
-  const proc = exec(
-    `cd ${path.join(entitiesPath, name)} && npm test`,
-    (error, stdout, stderr) => {
-      if (error) {
-        console.log(color.red, error);
-        process.exit(1);
-      }
-    }
-  );
-  return { name, process: proc };
+  try {
+    const syncResults = execSync(
+      `cd ${path.join(entitiesPath, name)} && npm test`,
+      { stdio: "inherit" }
+    );
+    return { name, syncResults };
+  } catch (error) {
+    console.log(color.red, error);
+    process.exit(1);
+  }
 };
 
 getGlobalBundlerConfig().then((mfEntities: MfEntity[]) => {
@@ -46,6 +46,7 @@ getGlobalBundlerConfig().then((mfEntities: MfEntity[]) => {
     componentProcess,
     componentsPath,
     mfEntities,
+    sequential: true,
   };
   command(config);
 });
