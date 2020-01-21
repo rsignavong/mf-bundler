@@ -89,7 +89,7 @@ const componentProcess = async (
     `cd ${path.join(
       entitiesPath,
       name
-    )} && cross-env NODE_ENV=${env} npm run build && copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`,
+    )} && npx cross-env NODE_ENV=${env} npm run build && npx copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`,
     (error, stdout, stderr) => {
       if (error) {
         console.log(color.red, error);
