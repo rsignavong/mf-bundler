@@ -26,7 +26,7 @@ export const isProjectDir = (
   dirent: Dirent,
   componentName: string,
   componentsPath: string
-) => {
+): boolean => {
   if (!dirent.isDirectory()) {
     return false;
   }
