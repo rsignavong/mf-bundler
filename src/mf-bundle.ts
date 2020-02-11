@@ -81,23 +81,39 @@ const componentProcess = async (
   const componentDists = [distDirectory, domain, entity, uiType, "/"];
   const componentDistDirectory = path.join(...componentDists);
   mkdirSync(componentDistDirectory, { recursive: true });
-  console.log(
-    color.blue,
-    `Bundling ${entity}...${name}... and copy content from ${outputDist} to ${componentDistDirectory}`
-  );
-  const proc = exec(
-    `cd ${path.join(
-      entitiesPath,
-      name
-    )} && npx cross-env NODE_ENV=${env} npm run build && npx copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`,
-    (error, stdout, stderr) => {
-      if (error) {
-        console.log(color.red, error);
-        process.exit(1);
+  const process = () =>
+    new Promise((resolve, reject) => {
+      console.log(
+        color.blue,
+        `Bundling ${entity}...${name}... and copy content from ${outputDist} to ${componentDistDirectory}`
+      );
+      const proc = exec(
+        `cd ${path.join(
+          entitiesPath,
+          name
+        )} && npx cross-env NODE_ENV=${env} npm run build && npx copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`,
+        (error, stdout, stderr) => {
+          if (error) {
+            console.log(`finished process exec for ${name} with ERROR`);
+            console.log(color.red, error);
+            reject(error);
+          } else {
+            console.log(`finished process exec for ${name}`);
+            resolve(proc);
+          }
+          return;
+        }
+      );
+      if (proc.stdout) {
+        proc.stdout.on("data", data => {
+          console.log(data);
+        });
       }
-    }
-  );
-  return { name, process: proc };
+      if (proc.stderr) {
+        proc.stderr.on("data", err => console.log(color.red, err));
+      }
+    });
+  return { name, process };
 };
 
 const postProcess = async (
