@@ -1,14 +1,20 @@
 import bluebird from "bluebird";
-import { readdirSync } from "fs";
+import fs from "fs-extra";
 import * as path from "path";
 import color from "./color";
 import { CommandConfig, ComponentProcess, MfEntity } from "./types";
 import { isProjectDir } from "./utils";
 
-const asyncforEach = async (array, callback) => {
+const asyncforEach = async (
+  array,
+  callback,
+  acc: ComponentProcess[] = []
+): Promise<ComponentProcess[]> => {
   for (let index = 0; index < array.length; index++) {
-    await callback(array[index], index, array);
+    const r = await callback(array[index], index, array);
+    acc.push(r);
   }
+  return acc;
 };
 
 const executeCommandProcess = async ({
@@ -19,36 +25,37 @@ const executeCommandProcess = async ({
   postProcess,
   sequential,
 }: CommandConfig): Promise<void> => {
-  const components: Array<Promise<ComponentProcess>> = readdirSync(
-    componentsPath,
-    {
-      withFileTypes: true,
-    }
-  )
-    .filter(dirent => {
-      return isProjectDir(dirent, componentName, componentsPath);
-    })
-    .map((dirent, index) => {
-      return componentProcess(dirent.name, componentsPath, mfEntities[index]);
-    });
-
   try {
-    // const results = await asyncforEach(components, c => c.process);
-    // console.log(results);
-    const results: ComponentProcess[] = sequential
-      ? await bluebird.mapSeries(components, res => res)
-      : await bluebird.all(components);
-    // const resultsProcess = await Promise.all(results.map(res => res.process));
-    // console.log(resultsProcess);
+    const rawComponents = await fs.readdir(componentsPath, {
+      withFileTypes: true,
+    });
+    const components = rawComponents.filter(dirent => {
+      return isProjectDir(dirent, componentName, componentsPath);
+    });
+    const results = await asyncforEach(components, async (dirent, index) => {
+      try {
+        const { name } = await componentProcess(
+          dirent.name,
+          componentsPath,
+          mfEntities[index]
+        );
+        console.log(`${name} done !`);
+        return { name };
+      } catch (e) {
+        console.error(`error !`);
+        console.error(e);
+        process.exit(1);
+      }
+    });
     console.log(color.blue, "Done");
-
     if (postProcess) {
       await postProcess(results, componentsPath);
     }
+    return;
   } catch (e) {
     console.error(e);
+    return e;
   }
-  return;
 };
 
 const command = ({
