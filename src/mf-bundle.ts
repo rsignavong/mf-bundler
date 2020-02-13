@@ -3,13 +3,7 @@
 import bluebird from "bluebird";
 import { exec } from "child_process";
 import program from "commander";
-import {
-  Dirent,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  writeFileSync,
-} from "fs";
+import fs from "fs-extra";
 import isEmpty from "lodash.isempty";
 import forEach from "lodash.foreach";
 import groupBy from "lodash.groupby";
@@ -59,6 +53,8 @@ program
   )
   .parse(process.argv);
 
+const execP = bluebird.promisify(exec);
+
 const env = program.environment || process.env.NODE_ENV || "development";
 const distDirectory = path.join(process.cwd(), program.targetDir || "dist");
 const programRootPath = program.root || "apps";
@@ -68,7 +64,7 @@ const outputDist = path.join(output, "/");
 const prefix = program.prefix || "";
 const domain = program.domain || "";
 
-mkdirSync(distDirectory, { recursive: true });
+fs.mkdirSync(distDirectory, { recursive: true });
 
 const componentProcess = async (
   name: string,
@@ -80,24 +76,24 @@ const componentProcess = async (
   // TODO get domain & distDir from conf file (entityConfig)
   const componentDists = [distDirectory, domain, entity, uiType, "/"];
   const componentDistDirectory = path.join(...componentDists);
-  mkdirSync(componentDistDirectory, { recursive: true });
-  console.log(
-    color.blue,
-    `Bundling ${entity}...${name}... and copy content from ${outputDist} to ${componentDistDirectory}`
-  );
-  const proc = exec(
-    `cd ${path.join(
-      entitiesPath,
-      name
-    )} && npx cross-env NODE_ENV=${env} npm run build && npx copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`,
-    (error, stdout, stderr) => {
-      if (error) {
-        console.log(color.red, error);
-        process.exit(1);
-      }
+  return new Promise(async (resolve, reject) => { // eslint-disable-line
+    try {
+      await fs.mkdirp(componentDistDirectory);
+      console.log(
+        color.blue,
+        `Bundling ${entity}...${name}... and copy content from ${outputDist} to ${componentDistDirectory}`
+      );
+      await execP(
+        `cd ${path.join(
+          entitiesPath,
+          name
+        )} && npx cross-env NODE_ENV=${env} npm run build && npx copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`
+      );
+      resolve({ name });
+    } catch (e) {
+      reject(e);
     }
-  );
-  return { name, process: proc };
+  });
 };
 
 const postProcess = async (
@@ -105,7 +101,7 @@ const postProcess = async (
   componentsPath?: string
 ): Promise<void> => {
   console.log(color.blue, "Building mf-maestro.json...");
-  const filterByType = (type: string) => ({ name }: Dirent): boolean =>
+  const filterByType = (type: string) => ({ name }: fs.Dirent): boolean =>
     extname(name).toLowerCase() === `.${type}`;
   const bundlerConfig = await bluebird.reduce(
     results,
@@ -116,34 +112,39 @@ const postProcess = async (
     []
   );
   const bundlerConfigByEntity = groupBy(bundlerConfig, "entity");
-  forEach(
-    bundlerConfigByEntity,
-    (uiTypes: Array<BundlerByEntity>, entity: string): void => {
-      const manifestFile = path.join(
-        distDirectory,
-        domain,
-        entity,
-        "mf-maestro.json"
-      );
-      let manifestData: object;
-      try {
-        const content: Buffer = readFileSync(manifestFile);
-        manifestData = JSON.parse(content.toString());
-      } catch (_err) {
-        console.log(
-          color.yellow,
-          `Manifest doesn't exists for entity ${entity}.`
-        );
-        manifestData = {};
-      }
 
-      const manifestJson = uiTypes.reduce(
-        (acc: object, { microAppName, uiType }: BundlerByEntity) => {
-          const componentDists = [distDirectory, domain, entity, uiType, "/"];
-          const componentDistDirectory = path.join(...componentDists);
-          const jsFiles = readdirSync(componentDistDirectory, {
+  for (const entity in bundlerConfigByEntity) {
+    const uiTypes: Array<BundlerByEntity> = bundlerConfigByEntity[entity];
+    const manifestFile = path.join(
+      distDirectory,
+      domain,
+      entity,
+      "mf-maestro.json"
+    );
+    let manifestData: object;
+    try {
+      const content: Buffer = await fs.readFile(manifestFile);
+      manifestData = JSON.parse(content.toString());
+    } catch (_err) {
+      console.log(
+        color.yellow,
+        `Manifest doesn't exists for entity ${entity}.`
+      );
+      manifestData = {};
+    }
+    console.log("ui types:");
+    console.log(uiTypes);
+
+    const manifestJson = await bluebird.reduce(
+      uiTypes,
+      async (acc: object, { microAppName, uiType }: BundlerByEntity) => {
+        const componentDists = [distDirectory, domain, entity, uiType, "/"];
+        const componentDistDirectory = path.join(...componentDists);
+        try {
+          const jsFilesRaw = await fs.readdir(componentDistDirectory, {
             withFileTypes: true,
-          }).filter(filterByType("js"));
+          });
+          const jsFiles = jsFilesRaw.filter(filterByType("js"));
           const jsFile = program.jsentry
             ? jsFiles
                 .filter(file => file.name.startsWith(program.jsentry))
@@ -153,9 +154,10 @@ const postProcess = async (
             ? { url: `${prefix}/${entity}/${uiType}/${jsFile.name}` }
             : {};
 
-          const cssFiles = readdirSync(componentDistDirectory, {
+          const cssFilesRaw = await fs.readdir(componentDistDirectory, {
             withFileTypes: true,
-          }).filter(filterByType("css"));
+          });
+          const cssFiles = cssFilesRaw.filter(filterByType("css"));
           const cssFile = cssFiles.shift();
           const manifest = cssFile
             ? {
@@ -164,20 +166,25 @@ const postProcess = async (
               }
             : manifestJs;
 
-          if (isEmpty(manifest)) {
-            return acc;
-          }
-
-          return {
+          const realManifest = {
             ...acc,
             [microAppName]: manifest,
           };
-        },
-        manifestData
-      );
-      writeFileSync(manifestFile, JSON.stringify(manifestJson));
-    }
-  );
+
+          if (isEmpty(manifest)) {
+            return realManifest;
+          }
+          return realManifest;
+        } catch (err) {
+          console.error(err);
+          return acc;
+        }
+      },
+      manifestData
+    );
+    console.log(manifestFile, manifestJson, JSON.stringify(manifestJson));
+    await fs.writeFile(manifestFile, JSON.stringify(manifestJson));
+  }
   console.log(color.blue, "Done");
 };
 
