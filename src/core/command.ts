@@ -39,10 +39,8 @@ const executeCommandProcess = async ({
           componentsPath,
           mfEntities[index]
         );
-        console.log(`${name} done !`);
         return { name };
       } catch (e) {
-        console.error(`error !`);
         console.error(e);
         process.exit(1);
       }
