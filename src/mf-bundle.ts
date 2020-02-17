@@ -132,8 +132,6 @@ const postProcess = async (
       );
       manifestData = {};
     }
-    console.log("ui types:");
-    console.log(uiTypes);
 
     const manifestJson = await bluebird.reduce(
       uiTypes,
@@ -182,7 +180,6 @@ const postProcess = async (
       },
       manifestData
     );
-    console.log(manifestFile, manifestJson, JSON.stringify(manifestJson));
     await fs.writeFile(manifestFile, JSON.stringify(manifestJson));
   }
   console.log(color.blue, "Done");
