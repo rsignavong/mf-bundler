@@ -13,6 +13,8 @@ export interface BundlerByEntity {
 
 export interface ComponentProcess {
   name: string;
+  process?: ChildProcess;
+  syncResults?: Buffer | string;
 }
 
 export interface MfEntity {

@@ -5,7 +5,6 @@ import { exec } from "child_process";
 import program from "commander";
 import fs from "fs-extra";
 import isEmpty from "lodash.isempty";
-import forEach from "lodash.foreach";
 import groupBy from "lodash.groupby";
 import { default as path, extname } from "path";
 
@@ -23,6 +22,7 @@ import { getBundlerConfig, getGlobalBundlerConfig } from "./core/utils";
 program
   .version("1.0.0")
   .option("-c, --component <component>", "Bundle a specific micro-frontend.")
+  .option("-g, --entity <entity>", "Bundle a specific group/entity.")
   .option(
     "-d, --domain <domain>",
     "Define the domain folder to copy apps's assets. Default: undefined ;-)"
@@ -63,6 +63,7 @@ const output = program.output || "dist";
 const outputDist = path.join(output, "/");
 const prefix = program.prefix || "";
 const domain = program.domain || "";
+const targetEntity = program.entity;
 
 fs.mkdirSync(distDirectory, { recursive: true });
 
@@ -185,7 +186,7 @@ const postProcess = async (
   console.log(color.blue, "Done");
 };
 
-getGlobalBundlerConfig().then((mfEntities: MfEntity[]) => {
+getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
   const config: CommandConfig = {
     componentName: program.component,
     componentProcess,

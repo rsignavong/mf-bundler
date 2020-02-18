@@ -17,6 +17,7 @@ program
   )
   .option("-d, --dist <dist>", "Clean specific 'dist'. Default to 'dist'")
   .option("-e, --elm", "Add 'elm-stuff' directory to remove.")
+  .option("-g, --entity <entity>", "Bundle a specific group/entity.")
   .option(
     "-p, --path <path>",
     "Define component(s) root path. Default to 'apps/'"
@@ -33,6 +34,7 @@ const distAndModules = [nodeModules, dist];
 const removeDirectory = program.elm
   ? [...distAndModules, "elm-stuff"]
   : distAndModules;
+const targetEntity = program.entity;
 
 const componentProcess = async (
   name: string,
@@ -49,7 +51,7 @@ const componentProcess = async (
   return { name, process: proc };
 };
 
-getGlobalBundlerConfig().then((mfEntities: MfEntity[]) => {
+getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
   const config: CommandConfig = {
     componentName: program.component,
     componentProcess,
