@@ -12,6 +12,7 @@ import { getGlobalBundlerConfig } from "./core/utils";
 program
   .version("1.0.0")
   .option("-c, --component <component>", "Test a specific component.")
+  .option("-g, --entity <entity>", "Bundle a specific group/entity.")
   .option(
     "-p, --path <path>",
     "Define component(s) root path. Default to 'apps/'"
@@ -22,6 +23,7 @@ const programPath = program.path || "apps";
 const componentsPath = programPath.endsWith("/")
   ? programPath
   : path.join(programPath, "/");
+const targetEntity = program.entity;
 
 const componentProcess = async (
   name: string,
@@ -40,7 +42,7 @@ const componentProcess = async (
   }
 };
 
-getGlobalBundlerConfig().then((mfEntities: MfEntity[]) => {
+getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
   const config: CommandConfig = {
     componentName: program.component,
     componentProcess,

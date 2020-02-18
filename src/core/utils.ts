@@ -46,18 +46,24 @@ export const isProjectDir = (
   return true;
 };
 
-export const getGlobalBundlerConfig = async (): Promise<MfEntity[]> => {
-  const bundlerConfig = await readConfigFromFile(
-    bundlerConfigFilesNames.global
-  );
-  if (!bundlerConfig.entities) {
-    console.log(
-      color.red,
-      `Missing entities in ${bundlerConfigFilesNames.global}`
+export const getGlobalBundlerConfig = async (
+  entity?: string
+): Promise<MfEntity[]> => {
+  if (!entity) {
+    const bundlerConfig = await readConfigFromFile(
+      bundlerConfigFilesNames.global
     );
-    process.exit(1);
+    if (!bundlerConfig.entities) {
+      console.log(
+        color.red,
+        `Missing entities in ${bundlerConfigFilesNames.global}`
+      );
+      process.exit(1);
+    }
+    return bundlerConfig.entities;
+  } else {
+    return [{ name: entity }];
   }
-  return bundlerConfig.entities;
 };
 
 export const getBundlerConfig = async (
