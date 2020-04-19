@@ -77,7 +77,8 @@ const componentProcess = async (
   // TODO get domain & distDir from conf file (entityConfig)
   const componentDists = [distDirectory, domain, entity, uiType, "/"];
   const componentDistDirectory = path.join(...componentDists);
-  return new Promise(async (resolve, reject) => { // eslint-disable-line
+  return new Promise(async (resolve, reject) => {
+    // eslint-disable-line
     try {
       await fs.mkdirp(componentDistDirectory);
       console.log(
@@ -88,7 +89,7 @@ const componentProcess = async (
         `cd ${path.join(
           entitiesPath,
           name
-        )} && npx cross-env NODE_ENV=${env} npm run build && npx copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`
+        )} && rm -rf dist ${componentDistDirectory} && npx cross-env NODE_ENV=${env} npm run build && npx copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`
       );
       resolve({ name });
     } catch (e) {
@@ -146,7 +147,7 @@ const postProcess = async (
           const jsFiles = jsFilesRaw.filter(filterByType("js"));
           const jsFile = program.jsentry
             ? jsFiles
-                .filter(file => file.name.startsWith(program.jsentry))
+                .filter((file) => file.name.startsWith(program.jsentry))
                 .shift()
             : jsFiles.shift();
           const manifestJs = jsFile
