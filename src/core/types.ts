@@ -4,11 +4,15 @@ export interface Bundler {
   microAppName: string;
   entity: string;
   uiType: string;
+  processor: string;
+  requiredAcls: string[];
 }
 
 export interface BundlerByEntity {
   microAppName: string;
   uiType: string;
+  processor: string;
+  requiredAcls: string[];
 }
 
 export interface ComponentProcess {

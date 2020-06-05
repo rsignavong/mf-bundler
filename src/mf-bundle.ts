@@ -137,22 +137,27 @@ const postProcess = async (
 
     const manifestJson = await bluebird.reduce(
       uiTypes,
-      async (acc: object, { microAppName, uiType }: BundlerByEntity) => {
+      async (acc: object, { microAppName, uiType, processor, requiredAcls }: BundlerByEntity) => {
         const componentDists = [distDirectory, domain, entity, uiType, "/"];
         const componentDistDirectory = path.join(...componentDists);
         try {
+          const baseManifest = {
+            processor,
+            requiredAcls
+          };
+
           const jsFilesRaw = await fs.readdir(componentDistDirectory, {
             withFileTypes: true,
           });
           const jsFiles = jsFilesRaw.filter(filterByType("js"));
           const jsFile = program.jsentry
             ? jsFiles
-                .filter((file) => file.name.startsWith(program.jsentry))
-                .shift()
+              .filter((file) => file.name.startsWith(program.jsentry))
+              .shift()
             : jsFiles.shift();
           const manifestJs = jsFile
-            ? { url: `${prefix}/${entity}/${uiType}/${jsFile.name}` }
-            : {};
+            ? { ...baseManifest, url: `${prefix}/${entity}/${uiType}/${jsFile.name}` }
+            : baseManifest;
 
           const cssFilesRaw = await fs.readdir(componentDistDirectory, {
             withFileTypes: true,
@@ -161,9 +166,9 @@ const postProcess = async (
           const cssFile = cssFiles.shift();
           const manifest = cssFile
             ? {
-                ...manifestJs,
-                css: `${prefix}/${entity}/${uiType}/${cssFile.name}`,
-              }
+              ...manifestJs,
+              css: `${prefix}/${entity}/${uiType}/${cssFile.name}`,
+            }
             : manifestJs;
 
           const realManifest = {
