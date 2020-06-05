@@ -95,6 +95,20 @@ export const getBundlerConfig = async (
     );
     process.exit(1);
   }
+  if (typeof bundlerConfig.processor === 'undefined') {
+    console.log(
+      color.red,
+      `Missing processor in ${bundlerConfigFilesNames.microApp} of ${name} app`
+    );
+    process.exit(1);
+  }
+  if (!bundlerConfig.requiredAcls || bundlerConfig.requiredAcls.constructor !== Array) {
+    console.log(
+      color.red,
+      `Missing requiredAcls in ${bundlerConfigFilesNames.microApp} of ${name} app (e.g. ['create', 'index'])`
+    );
+    process.exit(1);
+  }
 
   return bundlerConfig;
 };

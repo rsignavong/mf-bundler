@@ -21,7 +21,9 @@ export {config};
 const config = {
   microAppName: "micro-app-menu-detail", // used by registerMicroApp and MicroAppComponent name attribute 
   entity: "menu", // used for the mf-maestro.json and dist folder structure for build
-  uiType: "detail" // used for the mf-maestro.json and dist folder structure for build
+  uiType: "detail", // used for the mf-maestro.json and dist folder structure for build
+  processor: "processor_name",  // used for the mf-maestro.json and dist folder structure for build
+  requiredAcls: ["index", "create"] // used for the mf-maestro.json and dist folder structure for build
 };
 
 export {config};
