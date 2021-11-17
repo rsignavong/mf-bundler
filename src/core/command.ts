@@ -4,6 +4,8 @@ import * as path from "path";
 import color from "./color";
 import { CommandConfig, ComponentProcess, MfEntity } from "./types";
 import { isProjectDir } from "./utils";
+import os from "os";
+import { Dirent } from "fs";
 
 const asyncforEach = async (
   array,
@@ -26,26 +28,31 @@ const executeCommandProcess = async ({
   sequential,
 }: CommandConfig): Promise<void> => {
   try {
-    const rawComponents = await fs.readdir(componentsPath, {
+    const cpuCount = os.cpus().length;
+    const rawComponents: Dirent[] = await fs.readdir(componentsPath, {
       withFileTypes: true,
     });
     const components = rawComponents.filter(dirent => {
       return isProjectDir(dirent, componentName, componentsPath);
     });
-    const results = await bluebird.all(
-      asyncforEach(components, async (dirent, index) => {
-        try {
-          const { name } = await componentProcess(
-            dirent.name,
-            componentsPath,
-            mfEntities[index]
-          );
-          return { name };
-        } catch (e) {
-          console.error(e);
-          process.exit(1);
-        }
-      })
+    const results = await bluebird.map(
+      components,
+      (dirent, index) => {
+        return async () => {
+          try {
+            const { name } = await componentProcess(
+              dirent.name,
+              componentsPath,
+              mfEntities[index]
+            );
+            return { name };
+          } catch (e) {
+            console.error(e);
+            process.exit(1);
+          }
+        };
+      },
+      { concurrency: Math.max(cpuCount - 1, 1) }
     );
     console.log(color.blue, "Done");
     if (postProcess) {
