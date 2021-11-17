@@ -75,21 +75,23 @@ const componentProcess = async (
   const { entity, uiType } = await getBundlerConfig(name, entitiesPath);
   // TODO check entity name on micro app file === entityName on global file
   // TODO get domain & distDir from conf file (entityConfig)
+  const componentSourcesPath = path.join(entitiesPath, name);
   const componentDists = [distDirectory, domain, entity, uiType, "/"];
   const componentDistDirectory = path.join(...componentDists);
   return new Promise(async (resolve, reject) => {
     // eslint-disable-line
     try {
+      if (!fs.pathExistsSync(path.join(componentSourcesPath, ".generated"))) {
+        console.log(color.blue, `Skip bundling ${entity}...${name}...`);
+        return resolve({ name });
+      }
       await fs.mkdirp(componentDistDirectory);
       console.log(
         color.blue,
         `Bundling ${entity}...${name}... and copy content from ${outputDist} to ${componentDistDirectory}`
       );
       await execP(
-        `cd ${path.join(
-          entitiesPath,
-          name
-        )} && rm -rf dist ${componentDistDirectory} && npx cross-env NODE_ENV=${env} npm run build && npx copyfiles --up 1 ${outputDist}* ${componentDistDirectory}`
+        `cd ${componentSourcesPath} && rm -rf dist ${componentDistDirectory} && npx cross-env NODE_ENV=${env} npm run build && npx copyfiles --up 1 ${outputDist}* ${componentDistDirectory} && rm .generated`
       );
       resolve({ name });
     } catch (e) {
@@ -137,13 +139,16 @@ const postProcess = async (
 
     const manifestJson = await bluebird.reduce(
       uiTypes,
-      async (acc: object, { microAppName, uiType, processor, requiredAcls }: BundlerByEntity) => {
+      async (
+        acc: object,
+        { microAppName, uiType, processor, requiredAcls }: BundlerByEntity
+      ) => {
         const componentDists = [distDirectory, domain, entity, uiType, "/"];
         const componentDistDirectory = path.join(...componentDists);
         try {
           const baseManifest = {
             processor,
-            requiredAcls
+            requiredAcls,
           };
 
           const jsFilesRaw = await fs.readdir(componentDistDirectory, {
@@ -152,11 +157,14 @@ const postProcess = async (
           const jsFiles = jsFilesRaw.filter(filterByType("js"));
           const jsFile = program.jsentry
             ? jsFiles
-              .filter((file) => file.name.startsWith(program.jsentry))
-              .shift()
+                .filter(file => file.name.startsWith(program.jsentry))
+                .shift()
             : jsFiles.shift();
           const manifestJs = jsFile
-            ? { ...baseManifest, url: `${prefix}/${entity}/${uiType}/${jsFile.name}` }
+            ? {
+                ...baseManifest,
+                url: `${prefix}/${entity}/${uiType}/${jsFile.name}`,
+              }
             : baseManifest;
 
           const cssFilesRaw = await fs.readdir(componentDistDirectory, {
@@ -166,9 +174,9 @@ const postProcess = async (
           const cssFile = cssFiles.shift();
           const manifest = cssFile
             ? {
-              ...manifestJs,
-              css: `${prefix}/${entity}/${uiType}/${cssFile.name}`,
-            }
+                ...manifestJs,
+                css: `${prefix}/${entity}/${uiType}/${cssFile.name}`,
+              }
             : manifestJs;
 
           const realManifest = {
