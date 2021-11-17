@@ -38,7 +38,7 @@ const executeCommandProcess = async ({
     const results = await bluebird.map(
       components,
       (dirent, index) => {
-        return async () => {
+        const result = async () => {
           try {
             const { name } = await componentProcess(
               dirent.name,
@@ -51,6 +51,7 @@ const executeCommandProcess = async ({
             process.exit(1);
           }
         };
+        return result();
       },
       { concurrency: Math.max(cpuCount - 1, 1) }
     );
