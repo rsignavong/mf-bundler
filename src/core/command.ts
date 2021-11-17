@@ -11,7 +11,7 @@ const asyncforEach = async (
   acc: ComponentProcess[] = []
 ): Promise<ComponentProcess[]> => {
   for (let index = 0; index < array.length; index++) {
-    const r = await callback(array[index], index, array);
+    const r = callback(array[index], index, array);
     acc.push(r);
   }
   return acc;
@@ -32,19 +32,21 @@ const executeCommandProcess = async ({
     const components = rawComponents.filter(dirent => {
       return isProjectDir(dirent, componentName, componentsPath);
     });
-    const results = await asyncforEach(components, async (dirent, index) => {
-      try {
-        const { name } = await componentProcess(
-          dirent.name,
-          componentsPath,
-          mfEntities[index]
-        );
-        return { name };
-      } catch (e) {
-        console.error(e);
-        process.exit(1);
-      }
-    });
+    const results = await bluebird.all(
+      asyncforEach(components, async (dirent, index) => {
+        try {
+          const { name } = await componentProcess(
+            dirent.name,
+            componentsPath,
+            mfEntities[index]
+          );
+          return { name };
+        } catch (e) {
+          console.error(e);
+          process.exit(1);
+        }
+      })
+    );
     console.log(color.blue, "Done");
     if (postProcess) {
       await postProcess(results, componentsPath);
