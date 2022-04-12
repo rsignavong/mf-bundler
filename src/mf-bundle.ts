@@ -51,6 +51,10 @@ program
     "-r, --root <root>",
     "Define component(s) root path. Default to 'apps/'"
   )
+  .option(
+    "-s, --sequential",
+    "Bundle in sequential order instead of parallel. Default to false"
+  )
   .parse(process.argv);
 
 const execP = bluebird.promisify(exec);
@@ -64,6 +68,7 @@ const outputDist = path.join(output, "/");
 const prefix = program.prefix || "";
 const domain = program.domain || "";
 const targetEntity = program.entity;
+const sequential = program.sequential;
 
 fs.mkdirSync(distDirectory, { recursive: true });
 
@@ -207,6 +212,7 @@ getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
     componentsPath,
     mfEntities,
     postProcess,
+    sequential,
   };
   command(config);
 });
