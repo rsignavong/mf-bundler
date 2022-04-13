@@ -229,5 +229,5 @@ getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
     postProcess,
     concurrency,
   };
-  command(config);
+  return Promise.all(command(config));
 });

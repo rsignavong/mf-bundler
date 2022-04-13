@@ -61,7 +61,7 @@ const command = ({
   postProcess,
   concurrency = 1,
 }: CommandConfig): Promise<void>[] => {
-  console.log(color.blue, "Running ");
+  console.log(color.blue, "Running command for entities");
   return mfEntities.map(async (entity: MfEntity) => {
     const tmpComponentsPath = path.join(componentsPath, entity.name);
     return await executeCommandProcess({
