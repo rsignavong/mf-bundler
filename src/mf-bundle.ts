@@ -73,7 +73,7 @@ const domain = program.domain || "";
 const targetEntity = program.entity;
 
 const maxProcess = os.cpus().length - 1;
-const nbProcess = program.spawn || maxProcess;
+const nbProcess = parseInt(program.spawn) || maxProcess;
 const concurrency = Math.max(
   nbProcess > maxProcess ? maxProcess : nbProcess,
   1
