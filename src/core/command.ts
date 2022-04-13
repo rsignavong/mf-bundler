@@ -4,20 +4,7 @@ import * as path from "path";
 import color from "./color";
 import { CommandConfig, ComponentProcess, MfEntity } from "./types";
 import { isProjectDir } from "./utils";
-import os from "os";
 import { Dirent } from "fs";
-
-const asyncforEach = async (
-  array,
-  callback,
-  acc: ComponentProcess[] = []
-): Promise<ComponentProcess[]> => {
-  for (let index = 0; index < array.length; index++) {
-    const r = callback(array[index], index, array);
-    acc.push(r);
-  }
-  return acc;
-};
 
 const executeCommandProcess = async ({
   componentName,
@@ -25,10 +12,9 @@ const executeCommandProcess = async ({
   componentsPath,
   mfEntities,
   postProcess,
-  sequential,
+  concurrency,
 }: CommandConfig): Promise<void> => {
   try {
-    const concurrency = sequential ? 1 : Math.max(os.cpus().length - 1, 1);
     console.log(color.blue, `Execute ${concurrency} process in parallel`);
     const rawComponents: Dirent[] = await fs.readdir(componentsPath, {
       withFileTypes: true,
@@ -73,7 +59,7 @@ const command = ({
   componentsPath,
   mfEntities,
   postProcess,
-  sequential = false,
+  concurrency = 1,
 }: CommandConfig): Promise<void>[] => {
   console.log(color.blue, "Running ");
   return mfEntities.map(async (entity: MfEntity) => {
@@ -84,7 +70,7 @@ const command = ({
       componentsPath: tmpComponentsPath,
       mfEntities,
       postProcess,
-      sequential,
+      concurrency,
     });
   });
 };

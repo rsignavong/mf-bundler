@@ -40,5 +40,5 @@ export interface CommandConfig {
     results: ComponentProcess[],
     componentsPath?: string
   ): Promise<void>;
-  sequential?: boolean;
+  concurrency?: number;
 }

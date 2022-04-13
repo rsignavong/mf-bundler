@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import os from "os";
 import bluebird from "bluebird";
 import { exec } from "child_process";
 import program from "commander";
@@ -54,8 +55,8 @@ program
     "Define component(s) root path. Default to 'apps/'"
   )
   .option(
-    "-s, --sequential",
-    "Bundle in sequential order instead of parallel. Default to false"
+    "-p, --process <process>",
+    "Specify how many can run in parallel. Default to cpus number - 1"
   )
   .parse(process.argv);
 
@@ -70,7 +71,13 @@ const outputDist = path.join(output, "/");
 const prefix = program.prefix || "";
 const domain = program.domain || "";
 const targetEntity = program.entity;
-const sequential = program.sequential;
+
+const maxProcess = os.cpus().length - 1;
+const nbProcess = program.process || maxProcess;
+const concurrency = Math.max(
+  nbProcess > maxProcess ? maxProcess : nbProcess,
+  1
+);
 
 fs.mkdirSync(distDirectory, { recursive: true });
 console.log(color.blue, `Dist directory ${distDirectory} created`);
@@ -220,7 +227,7 @@ getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
     componentsPath,
     mfEntities,
     postProcess,
-    sequential,
+    concurrency,
   };
   command(config);
 });
