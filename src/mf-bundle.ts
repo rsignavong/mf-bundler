@@ -55,8 +55,8 @@ program
     "Define component(s) root path. Default to 'apps/'"
   )
   .option(
-    "-p, --process <process>",
-    "Specify how many can run in parallel. Default to cpus number - 1"
+    "-s, --spawn <spawn>",
+    "Specify how many process can be spawn in parallel. Default to numbers of cpus - 1"
   )
   .parse(process.argv);
 
@@ -73,7 +73,7 @@ const domain = program.domain || "";
 const targetEntity = program.entity;
 
 const maxProcess = os.cpus().length - 1;
-const nbProcess = program.process || maxProcess;
+const nbProcess = program.spawn || maxProcess;
 const concurrency = Math.max(
   nbProcess > maxProcess ? maxProcess : nbProcess,
   1
