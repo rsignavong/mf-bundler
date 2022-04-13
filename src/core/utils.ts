@@ -50,6 +50,10 @@ export const getGlobalBundlerConfig = async (
   entity?: string
 ): Promise<MfEntity[]> => {
   if (!entity) {
+    console.log(
+      color.blue,
+      `Get Global Bundler Config from ${bundlerConfigFilesNames.global}`
+    );
     const bundlerConfig = await readConfigFromFile(
       bundlerConfigFilesNames.global
     );
@@ -62,6 +66,7 @@ export const getGlobalBundlerConfig = async (
     }
     return bundlerConfig.entities;
   } else {
+    console.log(color.blue, `Get Global Bundler Config for ${entity}`);
     return [{ name: entity }];
   }
 };
@@ -70,6 +75,7 @@ export const getBundlerConfig = async (
   name: string,
   entitiesPath: string
 ): Promise<Bundler> => {
+  console.log(color.blue, `Reading ${name} Bundler Config file`);
   const bundlerConfig = await readConfigFromFile(
     path.resolve(entitiesPath, name, bundlerConfigFilesNames.microApp),
     name
@@ -95,14 +101,17 @@ export const getBundlerConfig = async (
     );
     process.exit(1);
   }
-  if (typeof bundlerConfig.processor === 'undefined') {
+  if (typeof bundlerConfig.processor === "undefined") {
     console.log(
       color.red,
       `Missing processor in ${bundlerConfigFilesNames.microApp} of ${name} app`
     );
     process.exit(1);
   }
-  if (!bundlerConfig.requiredAcls || bundlerConfig.requiredAcls.constructor !== Array) {
+  if (
+    !bundlerConfig.requiredAcls ||
+    bundlerConfig.requiredAcls.constructor !== Array
+  ) {
     console.log(
       color.red,
       `Missing requiredAcls in ${bundlerConfigFilesNames.microApp} of ${name} app (e.g. ['create', 'index'])`

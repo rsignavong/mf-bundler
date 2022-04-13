@@ -19,6 +19,8 @@ import {
 } from "./core/types";
 import { getBundlerConfig, getGlobalBundlerConfig } from "./core/utils";
 
+console.log(color.blue, `Starting MF Bundler`);
+
 program
   .version("1.0.0")
   .option("-c, --component <component>", "Bundle a specific micro-frontend.")
@@ -71,12 +73,14 @@ const targetEntity = program.entity;
 const sequential = program.sequential;
 
 fs.mkdirSync(distDirectory, { recursive: true });
+console.log(color.blue, `Dist directory ${distDirectory} created`);
 
 const componentProcess = async (
   name: string,
   entitiesPath: string,
   entityConfig: MfEntity
 ): Promise<ComponentProcess> => {
+  console.log(color.blue, `Start bundling MF ${name}`);
   const { entity, uiType } = await getBundlerConfig(name, entitiesPath);
   // TODO check entity name on micro app file === entityName on global file
   // TODO get domain & distDir from conf file (entityConfig)
@@ -87,13 +91,17 @@ const componentProcess = async (
     // eslint-disable-line
     try {
       if (!fs.pathExistsSync(path.join(componentSourcesPath, ".generated"))) {
-        console.log(color.blue, `Skip bundling ${entity}...${name}...`);
+        console.log(color.blue, `Skip bundling ${entity} - ${name}`);
         return resolve({ name });
       }
+      console.log(
+        color.blue,
+        `Preparing dist directory for ${entity} - ${name}`
+      );
       await fs.mkdirp(componentDistDirectory);
       console.log(
         color.blue,
-        `Bundling ${entity}...${name}... and copy content from ${outputDist} to ${componentDistDirectory}`
+        `Bundling ${entity} - ${name}... and copy content from ${outputDist} to ${componentDistDirectory}`
       );
       await execP(
         `cd ${componentSourcesPath} && rm -rf dist ${componentDistDirectory} && npx cross-env NODE_ENV=${env} npm run build && npx copyfiles --up 1 ${outputDist}* ${componentDistDirectory} && rm .generated`

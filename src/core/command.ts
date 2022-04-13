@@ -28,7 +28,8 @@ const executeCommandProcess = async ({
   sequential,
 }: CommandConfig): Promise<void> => {
   try {
-    const cpuCount = os.cpus().length;
+    const concurrency = sequential ? 1 : Math.max(os.cpus().length - 1, 1);
+    console.log(color.blue, `Execute ${concurrency} process in parallel`);
     const rawComponents: Dirent[] = await fs.readdir(componentsPath, {
       withFileTypes: true,
     });
@@ -53,7 +54,7 @@ const executeCommandProcess = async ({
         };
         return result();
       },
-      { concurrency: sequential ? 1 : Math.max(cpuCount - 1, 1) }
+      { concurrency }
     );
     console.log(color.blue, "Done");
     if (postProcess) {
@@ -74,6 +75,7 @@ const command = ({
   postProcess,
   sequential = false,
 }: CommandConfig): Promise<void>[] => {
+  console.log(color.blue, "Running ");
   return mfEntities.map(async (entity: MfEntity) => {
     const tmpComponentsPath = path.join(componentsPath, entity.name);
     return await executeCommandProcess({
