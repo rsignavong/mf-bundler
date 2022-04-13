@@ -1,6 +1,6 @@
 {
   "name": "mf-bundler",
-  "version": "1.8.9",
+  "version": "1.8.10",
   "description": "Bundle MicroFrontend without pain",
   "engines": {
     "node": ">=12.13.0"
