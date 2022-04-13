@@ -58,5 +58,5 @@ getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
     componentsPath,
     mfEntities,
   };
-  command(config);
+  return Promise.all(command(config));
 });

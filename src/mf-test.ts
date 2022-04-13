@@ -48,7 +48,7 @@ getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
     componentProcess,
     componentsPath,
     mfEntities,
-    sequential: true,
+    concurrency: 1,
   };
-  command(config);
+  return Promise.all(command(config));
 });
