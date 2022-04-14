@@ -55,8 +55,8 @@ program
     "Define component(s) root path. Default to 'apps/'"
   )
   .option(
-    "-s, --spawn <spawn>",
-    "Specify how many process can be spawn in parallel. Default to numbers of cpus - 1"
+    "-w, --worker <worker>",
+    "Specify how many worker can be spawn in parallel. Default to numbers of cpus - 1"
   )
   .parse(process.argv);
 
@@ -72,12 +72,9 @@ const prefix = program.prefix || "";
 const domain = program.domain || "";
 const targetEntity = program.entity;
 
-const maxProcess = os.cpus().length - 1;
-const nbProcess = parseInt(program.spawn) || maxProcess;
-const concurrency = Math.max(
-  nbProcess > maxProcess ? maxProcess : nbProcess,
-  1
-);
+const maxWorkers = os.cpus().length - 1;
+const nbWorker = parseInt(program.worker) || maxWorkers;
+const concurrency = Math.max(nbWorker > maxWorkers ? maxWorkers : nbWorker, 1);
 
 fs.mkdirSync(distDirectory, { recursive: true });
 console.log(color.blue, `Dist directory ${distDirectory} created`);
