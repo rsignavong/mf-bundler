@@ -42,12 +42,13 @@ const componentProcess = async (
   }
 };
 
-const mfEntities: MfEntity[] = await getGlobalBundlerConfig(targetEntity);
-const config: CommandConfig = {
-  componentName: program.component,
-  componentProcess,
-  componentsPath,
-  mfEntities,
-  concurrency: 1,
-};
-await Promise.all(command(config));
+getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
+  const config: CommandConfig = {
+    componentName: program.component,
+    componentProcess,
+    componentsPath,
+    mfEntities,
+    concurrency: 1,
+  };
+  return Promise.all(command(config));
+});

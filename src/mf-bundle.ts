@@ -220,13 +220,14 @@ const postProcess = async (
   console.log(color.blue, "Done");
 };
 
-const mfEntities: MfEntity[] = await getGlobalBundlerConfig(targetEntity);
-const config: CommandConfig = {
-  componentName: program.component,
-  componentProcess,
-  componentsPath,
-  mfEntities,
-  postProcess,
-  concurrency,
-};
-await Promise.all(command(config));
+getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
+  const config: CommandConfig = {
+    componentName: program.component,
+    componentProcess,
+    componentsPath,
+    mfEntities,
+    postProcess,
+    concurrency,
+  };
+  return Promise.all(command(config));
+});
