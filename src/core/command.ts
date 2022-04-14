@@ -19,9 +19,9 @@ const executeCommandProcess = async ({
     const rawComponents: Dirent[] = await fs.readdir(componentsPath, {
       withFileTypes: true,
     });
-    const components = rawComponents.filter(dirent => {
-      return isProjectDir(dirent, componentName, componentsPath);
-    });
+    const components = rawComponents.filter(dirent =>
+      isProjectDir(dirent, componentName, componentsPath)
+    );
     const results = await bluebird.map(
       components,
       (dirent, index) => {
@@ -62,9 +62,9 @@ const command = ({
   concurrency = 1,
 }: CommandConfig): Promise<void>[] => {
   console.log(color.blue, "Running command for entities");
-  return mfEntities.map(async (entity: MfEntity) => {
+  return mfEntities.map((entity: MfEntity) => {
     const tmpComponentsPath = path.join(componentsPath, entity.name);
-    return await executeCommandProcess({
+    return executeCommandProcess({
       componentName,
       componentProcess,
       componentsPath: tmpComponentsPath,

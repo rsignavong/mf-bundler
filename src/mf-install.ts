@@ -45,12 +45,11 @@ const componentProcess = async (
   return { name, process: proc };
 };
 
-getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
-  const config: CommandConfig = {
-    componentName: program.component,
-    componentProcess,
-    componentsPath,
-    mfEntities,
-  };
-  return Promise.all(command(config));
-});
+const mfEntities: MfEntity[] = await getGlobalBundlerConfig(targetEntity);
+const config: CommandConfig = {
+  componentName: program.component,
+  componentProcess,
+  componentsPath,
+  mfEntities,
+};
+await Promise.all(command(config));
