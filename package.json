@@ -12,6 +12,7 @@
     "mf-install": "./dist/mf-install.js",
     "mf-bundle": "./dist/mf-bundle.js",
     "mf-clean": "./dist/mf-clean.js",
+    "mf-partition": "./dist/mf-partition.js",
     "mf-serve": "./dist/mf-serve.js",
     "mf-test": "./dist/mf-test.js"
   },

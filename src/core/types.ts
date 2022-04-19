@@ -42,3 +42,7 @@ export interface CommandConfig {
   ): Promise<void>;
   concurrency?: number;
 }
+
+export interface PartitionQueues {
+  [key: string]: string[];
+}

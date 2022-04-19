@@ -27,12 +27,11 @@ const executeCommandProcess = async ({
       (dirent, index) => {
         const result = async (): Promise<ComponentProcess> => {
           try {
-            const { name } = await componentProcess(
+            return componentProcess(
               dirent.name,
               componentsPath,
               mfEntities[index]
             );
-            return { name };
           } catch (e) {
             console.error(e);
             process.exit(1);
