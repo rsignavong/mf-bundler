@@ -117,7 +117,7 @@ const postProcess = async (
       color.blue,
       `Copy projects files to ${partitionAlliumSystemDirectory}`
     );
-    await execP(`npx copyfiles -a * ${partitionAlliumSystemDirectory}`);
+    await execP(`npx copyfiles --all * ${partitionAlliumSystemDirectory}`);
 
     console.log(color.blue, `Copy ${mfs.join(" ")} to ${partitionDirectory}`);
     const mfsPath = mfs.map(mf => path.join(componentsPath, mf)).join(" ");
