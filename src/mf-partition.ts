@@ -49,8 +49,6 @@ const partitionQueues = [...Array(partition).keys()].reduce(
   {}
 );
 
-console.log(partitionQueues);
-
 const getMinPartitionQueue = (
   partitionQueues: PartitionQueues
 ): [string, string[]] => {
