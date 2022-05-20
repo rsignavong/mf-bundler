@@ -117,9 +117,13 @@ const postProcess = async (
     );
     await execP(`npx copyfiles --all * ${partitionAlliumSystemDirectory}`);
 
-    console.log(color.blue, `Copy ${mfs.join(" ")} to ${partitionDirectory}`);
-    const mfsPath = mfs.map(mf => path.join(componentsPath, mf)).join(" ");
-    await execP(`cp -RP ${mfsPath} ${partitionDirectory}`);
+    if (mfs.length > 0) {
+      console.log(color.blue, `Copy ${mfs.join(" ")} to ${partitionDirectory}`);
+      const mfsPath = mfs.map(mf => path.join(componentsPath, mf)).join(" ");
+      await execP(`cp -RP ${mfsPath} ${partitionDirectory}`);
+    } else {
+      console.log(color.blue, `No MF to copy to ${partitionDirectory}`);
+    }
   }
 };
 
