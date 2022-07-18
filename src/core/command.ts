@@ -29,7 +29,7 @@ const executeCommandProcess = async ({
       (res, entityDirent) => {
         const result = async (): Promise<ComponentPathInfo[]> => {
           if (entityDirent.isDirectory()) {
-            const rawMfs: Dirent[] = fs.readdir(
+            const rawMfs: Dirent[] = await fs.readdir(
               path.join(componentsPath, entityDirent.name),
               {
                 withFileTypes: true,
