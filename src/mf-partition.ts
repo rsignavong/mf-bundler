@@ -63,8 +63,10 @@ const getMinPartitionQueue = (
 
 const componentProcess = async (
   name: string,
+  entity: string,
+  componentFullPath: string,
   entitiesPath: string
-): Promise<ComponentProcess> => ({ name });
+): Promise<ComponentProcess> => ({ name, entity, componentFullPath });
 
 const postProcess = async (
   results: ComponentProcess[],
@@ -73,8 +75,11 @@ const postProcess = async (
   console.log(color.blue, `Partitionning over ${partition} partition(s)...`);
   const bundlerConfig = await bluebird.reduce(
     results,
-    async (acc: Array<Bundler>, { name }: ComponentProcess) => {
-      const bundler = await getBundlerConfig(name, componentsPath);
+    async (
+      acc: Array<Bundler>,
+      { name, entity, componentFullPath }: ComponentProcess
+    ) => {
+      const bundler = await getBundlerConfig(name, entity, componentFullPath);
       return [...acc, bundler];
     },
     []
@@ -88,7 +93,7 @@ const postProcess = async (
       [entity, bundlerConfigs]: [string, BundlerByEntity[]]
     ): PartitionQueues => {
       const [partition, queue] = getMinPartitionQueue(partitionQueues);
-      const mfs = bundlerConfigs.map(({ uiType }) => `${entity}-${uiType}`);
+      const mfs = bundlerConfigs.map(({ mfName }) => `${entity}/${mfName}`);
       const newQueue = queue.concat(mfs);
       return { ...partitionQueues, [partition]: newQueue };
     },

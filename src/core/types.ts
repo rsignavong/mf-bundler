@@ -1,9 +1,11 @@
 import { ChildProcess } from "child_process";
+import { Dirent } from "fs";
 
 export interface Bundler {
   microAppName: string;
   entity: string;
   uiType: string;
+  mfName: string;
   processor: string;
   requiredAcls: string[];
 }
@@ -11,12 +13,15 @@ export interface Bundler {
 export interface BundlerByEntity {
   microAppName: string;
   uiType: string;
+  mfName: string;
   processor: string;
   requiredAcls: string[];
 }
 
 export interface ComponentProcess {
   name: string;
+  entity: string;
+  componentFullPath: string;
   process?: ChildProcess;
   syncResults?: Buffer | string;
 }
@@ -33,6 +38,8 @@ export interface CommandConfig {
   mfEntities?: MfEntity[];
   componentProcess(
     name: string,
+    entity: string,
+    componentFullPath: string,
     componentsPath?: string,
     entityConfig?: MfEntity
   ): Promise<ComponentProcess>;
@@ -45,4 +52,9 @@ export interface CommandConfig {
 
 export interface PartitionQueues {
   [key: string]: string[];
+}
+
+export interface ComponentPathInfo {
+  entityDirent: Dirent;
+  componentDirent: Dirent;
 }

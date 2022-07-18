@@ -81,22 +81,28 @@ console.log(color.blue, `Dist directory ${distDirectory} created`);
 
 const componentProcess = async (
   name: string,
+  entityName: string,
+  componentFullPath: string,
   entitiesPath: string,
   entityConfig: MfEntity
 ): Promise<ComponentProcess> => {
-  console.log(color.blue, `Start bundling MF ${name}`);
-  const { entity, uiType } = await getBundlerConfig(name, entitiesPath);
+  console.log(color.blue, `Start bundling MF ${entityName}-${name}`);
+  const { entity, uiType, mfName } = await getBundlerConfig(
+    name,
+    entityName,
+    componentFullPath
+  );
   // TODO check entity name on micro app file === entityName on global file
   // TODO get domain & distDir from conf file (entityConfig)
-  const componentSourcesPath = path.join(entitiesPath, name);
-  const componentDists = [distDirectory, domain, entity, uiType, "/"];
+  const componentSourcesPath = componentFullPath;
+  const componentDists = [distDirectory, domain, entity, mfName, "/"];
   const componentDistDirectory = path.join(...componentDists);
   return new Promise(async (resolve, reject) => {
     // eslint-disable-line
     try {
       if (!fs.pathExistsSync(path.join(componentSourcesPath, ".generated"))) {
         console.log(color.blue, `Skip bundling ${entity} - ${name}`);
-        return resolve({ name });
+        return resolve({ name, entity, componentFullPath });
       }
       console.log(
         color.blue,
@@ -110,7 +116,7 @@ const componentProcess = async (
       await execP(
         `cd ${componentSourcesPath} && rm -rf dist ${componentDistDirectory} && npx cross-env NODE_ENV=${env} npm run build && npx copyfiles --up 1 ${outputDist}* ${componentDistDirectory} && rm .generated`
       );
-      resolve({ name });
+      resolve({ name, entity, componentFullPath });
     } catch (e) {
       reject(e);
     }
@@ -126,8 +132,11 @@ const postProcess = async (
     extname(name).toLowerCase() === `.${type}`;
   const bundlerConfig = await bluebird.reduce(
     results,
-    async (acc: Array<Bundler>, { name }: ComponentProcess) => {
-      const bundler = await getBundlerConfig(name, componentsPath);
+    async (
+      acc: Array<Bundler>,
+      { name, entity, componentFullPath }: ComponentProcess
+    ) => {
+      const bundler = await getBundlerConfig(name, entity, componentFullPath);
       return [...acc, bundler];
     },
     []
@@ -158,14 +167,21 @@ const postProcess = async (
       uiTypes,
       async (
         acc: object,
-        { microAppName, uiType, processor, requiredAcls }: BundlerByEntity
+        {
+          microAppName,
+          uiType,
+          mfName,
+          processor,
+          requiredAcls,
+        }: BundlerByEntity
       ) => {
-        const componentDists = [distDirectory, domain, entity, uiType, "/"];
+        const componentDists = [distDirectory, domain, entity, mfName, "/"];
         const componentDistDirectory = path.join(...componentDists);
         try {
           const baseManifest = {
             processor,
             requiredAcls,
+            uiType,
           };
 
           const jsFilesRaw = await fs.readdir(componentDistDirectory, {
@@ -174,14 +190,14 @@ const postProcess = async (
           const jsFiles = jsFilesRaw.filter(filterByType("js"));
           const jsFile = program.jsentry
             ? jsFiles
-                .filter(file => file.name.startsWith(program.jsentry))
-                .shift()
+              .filter(file => file.name.startsWith(program.jsentry))
+              .shift()
             : jsFiles.shift();
           const manifestJs = jsFile
             ? {
-                ...baseManifest,
-                url: `${prefix}/${entity}/${uiType}/${jsFile.name}`,
-              }
+              ...baseManifest,
+              url: `${prefix}/${entity}/${mfName}/${jsFile.name}`,
+            }
             : baseManifest;
 
           const cssFilesRaw = await fs.readdir(componentDistDirectory, {
@@ -191,9 +207,9 @@ const postProcess = async (
           const cssFile = cssFiles.shift();
           const manifest = cssFile
             ? {
-                ...manifestJs,
-                css: `${prefix}/${entity}/${uiType}/${cssFile.name}`,
-              }
+              ...manifestJs,
+              css: `${prefix}/${entity}/${mfName}/${cssFile.name}`,
+            }
             : manifestJs;
 
           const realManifest = {

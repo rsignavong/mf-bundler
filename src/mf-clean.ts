@@ -38,17 +38,19 @@ const targetEntity = program.entity;
 
 const componentProcess = async (
   name: string,
+  entity: string,
+  componentFullPath: string,
   entitiesPath: string
 ): Promise<ComponentProcess> => {
-  console.log(color.blue, `Cleaning ${name}...`);
+  console.log(color.blue, `Cleaning ${entity}-${name}...`);
   const proc = exec(
-    `rm -rf ${path.join(process.cwd(), "dist")} && cd ${path.join(
-      entitiesPath,
-      name
-    )} && rm -rf ${removeDirectory.join(" ")}`,
+    `rm -rf ${path.join(
+      process.cwd(),
+      "dist"
+    )} && cd ${componentFullPath} && rm -rf ${removeDirectory.join(" ")}`,
     err => err && process.exit(1)
   );
-  return { name, process: proc };
+  return { name, entity, componentFullPath, process: proc };
 };
 
 getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {

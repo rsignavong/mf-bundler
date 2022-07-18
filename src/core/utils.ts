@@ -24,23 +24,33 @@ const readConfigFromFile = async (filePath: string, name?: string) => {
 
 export const isProjectDir = (
   dirent: Dirent,
+  entityName: string,
   componentName: string,
   componentsPath: string
 ): boolean => {
   if (!dirent.isDirectory()) {
     return false;
   }
-  if (componentName && componentName !== dirent.name) {
+  if (componentName && componentName !== `${entityName}-${dirent.name}`) {
     return false;
   }
   if (
     !existsSync(
-      path.join(componentsPath, dirent.name, bundlerConfigFilesNames.microApp)
+      path.join(
+        componentsPath,
+        entityName,
+        dirent.name,
+        bundlerConfigFilesNames.microApp
+      )
     )
   ) {
     return false;
   }
-  if (!existsSync(path.join(componentsPath, dirent.name, "package.json"))) {
+  if (
+    !existsSync(
+      path.join(componentsPath, entityName, dirent.name, "package.json")
+    )
+  ) {
     return false;
   }
   return true;
@@ -73,38 +83,46 @@ export const getGlobalBundlerConfig = async (
 
 export const getBundlerConfig = async (
   name: string,
-  entitiesPath: string
+  entity: string,
+  componentFullPath: string
 ): Promise<Bundler> => {
-  console.log(color.blue, `Reading ${name} Bundler Config file`);
+  console.log(color.blue, `Reading ${entity}-${name} Bundler Config file`);
   const bundlerConfig = await readConfigFromFile(
-    path.resolve(entitiesPath, name, bundlerConfigFilesNames.microApp),
-    name
+    path.resolve(componentFullPath, bundlerConfigFilesNames.microApp),
+    `${entity}-${name}`
   );
   if (!bundlerConfig.microAppName) {
     console.log(
       color.red,
-      `Missing microAppName in ${bundlerConfigFilesNames.microApp} of ${name} app`
+      `Missing microAppName in ${bundlerConfigFilesNames.microApp} of ${entity}-${name} app`
     );
     process.exit(1);
   }
   if (!bundlerConfig.entity) {
     console.log(
       color.red,
-      `Missing entity in ${bundlerConfigFilesNames.microApp} of ${name} app`
+      `Missing entity in ${bundlerConfigFilesNames.microApp} of ${entity}-${name} app`
     );
     process.exit(1);
   }
   if (!bundlerConfig.uiType) {
     console.log(
       color.red,
-      `Missing uiType in ${bundlerConfigFilesNames.microApp} of ${name} app (e.g. master, detail, new, edit, ...)`
+      `Missing uiType in ${bundlerConfigFilesNames.microApp} of $${entity}-${name} app (e.g. master, detail, new, edit, ...)`
+    );
+    process.exit(1);
+  }
+  if (!bundlerConfig.mfName) {
+    console.log(
+      color.red,
+      `Missing mfName in ${bundlerConfigFilesNames.microApp} of $${entity}-${name} app`
     );
     process.exit(1);
   }
   if (typeof bundlerConfig.processor === "undefined") {
     console.log(
       color.red,
-      `Missing processor in ${bundlerConfigFilesNames.microApp} of ${name} app`
+      `Missing processor in ${bundlerConfigFilesNames.microApp} of ${entity}-${name} app`
     );
     process.exit(1);
   }
@@ -114,7 +132,7 @@ export const getBundlerConfig = async (
   ) {
     console.log(
       color.red,
-      `Missing requiredAcls in ${bundlerConfigFilesNames.microApp} of ${name} app (e.g. ['create', 'index'])`
+      `Missing requiredAcls in ${bundlerConfigFilesNames.microApp} of ${entity}-${name} app (e.g. ['create', 'index'])`
     );
     process.exit(1);
   }

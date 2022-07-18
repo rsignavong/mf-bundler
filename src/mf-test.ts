@@ -27,15 +27,16 @@ const targetEntity = program.entity;
 
 const componentProcess = async (
   name: string,
+  entity: string,
+  componentFullPath: string,
   entitiesPath: string
 ): Promise<ComponentProcess> => {
-  console.log(color.blue, `Testing ${name}...`);
+  console.log(color.blue, `Testing ${entity}-${name}...`);
   try {
-    const syncResults = execSync(
-      `cd ${path.join(entitiesPath, name)} && npm test`,
-      { stdio: "inherit" }
-    );
-    return { name, syncResults };
+    const syncResults = execSync(`cd ${componentFullPath} && npm test`, {
+      stdio: "inherit",
+    });
+    return { name, entity, componentFullPath, syncResults };
   } catch (error) {
     console.log(color.red, error);
     process.exit(1);

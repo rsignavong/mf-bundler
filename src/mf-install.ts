@@ -27,14 +27,13 @@ const targetEntity = program.entity;
 
 const componentProcess = async (
   name: string,
+  entity: string,
+  componentFullPath: string,
   entitiesPath: string
 ): Promise<ComponentProcess> => {
-  console.log(color.blue, `Installing dependencies ${name}...`);
+  console.log(color.blue, `Installing dependencies ${entity}-${name}...`);
   const proc = exec(
-    `cd ${path.join(
-      entitiesPath,
-      name
-    )} && ([ -f \"package-lock.json\" ] && npm ci || npm install)`,
+    `cd ${componentFullPath} && ([ -f "package-lock.json" ] && npm ci || npm install)`,
     (error, stdout, stderr) => {
       if (error) {
         console.log(color.red, error);
@@ -42,7 +41,7 @@ const componentProcess = async (
       }
     }
   );
-  return { name, process: proc };
+  return { name, entity, componentFullPath, process: proc };
 };
 
 getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
