@@ -31,7 +31,7 @@
     "cross-env": "^6.0.3",
     "esm-to-cjs": "^1.2.0",
     "fs-extra": "^8.1.0",
-    "http-server": "^0.11.1",
+    "http-server": "^14.1.1",
     "lodash.foreach": "^4.5.0",
     "lodash.groupby": "^4.6.0",
     "lodash.isempty": "^4.4.0",
