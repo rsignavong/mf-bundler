@@ -25,6 +25,7 @@
   "license": "ISC",
   "dependencies": {
     "bluebird": "^3.7.1",
+    "case": "^1.6.3",
     "commander": "^3.0.2",
     "copyfiles": "^2.1.1",
     "cross-env": "^6.0.3",

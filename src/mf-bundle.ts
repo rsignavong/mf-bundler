@@ -114,7 +114,7 @@ const componentProcess = async (
         `Bundling ${entity} - ${name}... and copy content from ${outputDist} to ${componentDistDirectory}`
       );
       await execP(
-        `cd ${componentSourcesPath} && rm -rf dist ${componentDistDirectory} && npx cross-env NODE_ENV=${env} npm run build && npx copyfiles --up 1 ${outputDist}* ${componentDistDirectory} && rm .generated`
+        `cd ${componentSourcesPath} && rm -rf dist ${componentDistDirectory} && npx cross-env NODE_ENV=${env} npm run build && npx copyfiles --up 1 "${outputDist}**/*" ${componentDistDirectory} && rm .generated`
       );
       resolve({ name, entity, componentFullPath });
     } catch (e) {

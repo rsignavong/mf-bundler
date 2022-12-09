@@ -5,6 +5,7 @@ import { runTransform } from "esm-to-cjs";
 import { Bundler, MfEntity } from "./types";
 import * as path from "path";
 import { bundlerConfigFilesNames } from "./constants";
+import Case from "case";
 
 const readConfigFromFile = async (filePath: string, name?: string) => {
   let errorMessage = `Missing config ${bundlerConfigFilesNames.global}`;
@@ -31,7 +32,7 @@ export const isProjectDir = (
   if (!dirent.isDirectory()) {
     return false;
   }
-  if (componentName && componentName !== `${entityName}-${dirent.name}`) {
+  if (componentName && Case.kebab(componentName) !== `${entityName}-${dirent.name}`) {
     return false;
   }
   if (
