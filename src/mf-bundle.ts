@@ -1,9 +1,7 @@
-#!/usr/bin/env node
-
 import os from "os";
 import bluebird from "bluebird";
 import { exec } from "child_process";
-import program from "commander";
+import { program } from "commander";
 import fs from "fs-extra";
 import isEmpty from "lodash.isempty";
 import groupBy from "lodash.groupby";
@@ -62,18 +60,19 @@ program
 
 const execP = bluebird.promisify(exec);
 
-const env = program.environment || process.env.NODE_ENV || "development";
-const distDirectory = path.join(process.cwd(), program.targetDir || "dist");
-const programRootPath = program.root || "apps";
+const options = program.opts();
+const env = options.environment || process.env.NODE_ENV || "development";
+const distDirectory = path.join(process.cwd(), options.targetDir || "dist");
+const programRootPath = options.root || "apps";
 const componentsPath = path.join(programRootPath, "/");
-const output = program.output || "dist";
+const output = options.output || "dist";
 const outputDist = path.join(output, "/");
-const prefix = program.prefix || "";
-const domain = program.domain || "";
-const targetEntity = program.entity;
+const prefix = options.prefix || "";
+const domain = options.domain || "";
+const targetEntity = options.entity;
 
 const maxWorkers = os.cpus().length - 1;
-const nbWorker = parseInt(program.worker) || maxWorkers;
+const nbWorker = parseInt(options.worker) || maxWorkers;
 const concurrency = Math.max(nbWorker > maxWorkers ? maxWorkers : nbWorker, 1);
 
 fs.mkdirSync(distDirectory, { recursive: true });
@@ -128,8 +127,10 @@ const postProcess = async (
   componentsPath?: string
 ): Promise<void> => {
   console.log(color.blue, "Building mf-maestro.json...");
-  const filterByType = (type: string) => ({ name }: fs.Dirent): boolean =>
-    extname(name).toLowerCase() === `.${type}`;
+  const filterByType =
+    (type: string) =>
+    ({ name }: fs.Dirent): boolean =>
+      extname(name).toLowerCase() === `.${type}`;
   const bundlerConfig = await bluebird.reduce(
     results,
     async (
@@ -188,16 +189,16 @@ const postProcess = async (
             withFileTypes: true,
           });
           const jsFiles = jsFilesRaw.filter(filterByType("js"));
-          const jsFile = program.jsentry
+          const jsFile = options.jsentry
             ? jsFiles
-              .filter(file => file.name.startsWith(program.jsentry))
-              .shift()
+                .filter((file) => file.name.startsWith(options.jsentry))
+                .shift()
             : jsFiles.shift();
           const manifestJs = jsFile
             ? {
-              ...baseManifest,
-              url: `${prefix}/${entity}/${mfName}/${jsFile.name}`,
-            }
+                ...baseManifest,
+                url: `${prefix}/${entity}/${mfName}/${jsFile.name}`,
+              }
             : baseManifest;
 
           const cssFilesRaw = await fs.readdir(componentDistDirectory, {
@@ -207,9 +208,9 @@ const postProcess = async (
           const cssFile = cssFiles.shift();
           const manifest = cssFile
             ? {
-              ...manifestJs,
-              css: `${prefix}/${entity}/${mfName}/${cssFile.name}`,
-            }
+                ...manifestJs,
+                css: `${prefix}/${entity}/${mfName}/${cssFile.name}`,
+              }
             : manifestJs;
 
           const realManifest = {
@@ -235,7 +236,7 @@ const postProcess = async (
 
 getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
   const config: CommandConfig = {
-    componentName: program.component,
+    componentName: options.component,
     componentProcess,
     componentsPath,
     mfEntities,

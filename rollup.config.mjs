@@ -1,10 +1,9 @@
 // rollup.config.js
-import babel from "rollup-plugin-babel";
-import clean from "rollup-plugin-clean";
-import commonjs from "rollup-plugin-commonjs";
-import hashbang from "rollup-plugin-hashbang";
-import nodeResolve from "rollup-plugin-node-resolve";
-import typescript from "rollup-plugin-typescript2";
+import babel from "@rollup/plugin-babel";
+import clean from "@rollup-extras/plugin-clean";
+import commonjs from "@rollup/plugin-commonjs";
+import nodeResolve from "@rollup/plugin-node-resolve";
+import typescript from "@rollup/plugin-typescript";
 
 export default {
   input: [
@@ -18,6 +17,7 @@ export default {
   output: {
     dir: "dist",
     format: "cjs",
+    banner: "#!/usr/bin/env node",
   },
   plugins: [
     clean(),
@@ -28,7 +28,6 @@ export default {
       include: ["node_modules/**"],
       exclude: ["node_modules/process-es6/**"],
     }),
-    hashbang(),
     nodeResolve(),
     typescript(),
   ],

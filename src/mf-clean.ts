@@ -1,7 +1,5 @@
-#!/usr/bin/env node
-
 import { exec } from "child_process";
-import program from "commander";
+import { program } from "commander";
 import { default as path } from "path";
 
 import color from "./core/color";
@@ -24,17 +22,18 @@ program
   )
   .parse(process.argv);
 
-const programPath = program.path || "apps";
+const options = program.opts();
+const programPath = options.path || "apps";
 const componentsPath = programPath.endsWith("/")
   ? programPath
   : path.join(programPath, "/");
 const nodeModules = "node_modules";
-const dist = program.dist || "dist";
+const dist = options.dist || "dist";
 const distAndModules = [nodeModules, dist];
-const removeDirectory = program.elm
+const removeDirectory = options.elm
   ? [...distAndModules, "elm-stuff"]
   : distAndModules;
-const targetEntity = program.entity;
+const targetEntity = options.entity;
 
 const componentProcess = async (
   name: string,
@@ -48,14 +47,14 @@ const componentProcess = async (
       process.cwd(),
       "dist"
     )} && cd ${componentFullPath} && rm -rf ${removeDirectory.join(" ")}`,
-    err => err && process.exit(1)
+    (err) => err && process.exit(1)
   );
   return { name, entity, componentFullPath, process: proc };
 };
 
 getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
   const config: CommandConfig = {
-    componentName: program.component,
+    componentName: options.component,
     componentProcess,
     componentsPath,
     mfEntities,

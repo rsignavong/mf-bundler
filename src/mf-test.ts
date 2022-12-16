@@ -1,7 +1,5 @@
-#!/usr/bin/env node
-
 import { execSync } from "child_process";
-import program from "commander";
+import { program } from "commander";
 import { default as path } from "path";
 
 import color from "./core/color";
@@ -19,11 +17,12 @@ program
   )
   .parse(process.argv);
 
-const programPath = program.path || "apps";
+const options = program.opts();
+const programPath = options.path || "apps";
 const componentsPath = programPath.endsWith("/")
   ? programPath
   : path.join(programPath, "/");
-const targetEntity = program.entity;
+const targetEntity = options.entity;
 
 const componentProcess = async (
   name: string,
@@ -45,7 +44,7 @@ const componentProcess = async (
 
 getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
   const config: CommandConfig = {
-    componentName: program.component,
+    componentName: options.component,
     componentProcess,
     componentsPath,
     mfEntities,

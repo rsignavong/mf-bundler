@@ -1,8 +1,6 @@
-#!/usr/bin/env node
-
 import { exec } from "child_process";
 import bluebird from "bluebird";
-import program from "commander";
+import { program } from "commander";
 import { default as path } from "path";
 import groupBy from "lodash.groupby";
 import fs from "fs-extra";
@@ -37,10 +35,11 @@ program
 
 const execP = bluebird.promisify(exec);
 
-const programRootPath = program.root || "apps";
+const options = program.opts();
+const programRootPath = options.root || "apps";
 const componentsPath = path.join(programRootPath, "/");
-const partition = parseInt(program.partition) || 3;
-const partitionTarget = program.targetPartitionDir || "partition";
+const partition = parseInt(options.partition) || 3;
+const partitionTarget = options.targetPartitionDir || "partition";
 const partitionQueues = [...Array(partition).keys()].reduce(
   (acc: PartitionQueues, partition: number): PartitionQueues => ({
     ...acc,
@@ -124,7 +123,7 @@ const postProcess = async (
 
     if (mfs.length > 0) {
       console.log(color.blue, `Copy ${mfs.join(" ")} to ${partitionDirectory}`);
-      const mfsPath = mfs.map(mf => path.join(componentsPath, mf)).join(" ");
+      const mfsPath = mfs.map((mf) => path.join(componentsPath, mf)).join(" ");
       await execP(`cp -RP ${mfsPath} ${partitionDirectory}`);
     } else {
       console.log(color.blue, `No MF to copy to ${partitionDirectory}`);

@@ -1,7 +1,5 @@
-#!/usr/bin/env node
-
 import { exec } from "child_process";
-import program from "commander";
+import { program } from "commander";
 import isFinite from "lodash.isfinite";
 
 import color from "./core/color";
@@ -11,7 +9,8 @@ program
   .option("-p, --port <port>", "Define port. Default to '8080/'")
   .parse(process.argv);
 
-const programPort = program.port || 8080;
+const options = program.opts();
+const programPort = options.port || 8080;
 const port = isFinite(parseInt(programPort, 10))
   ? programPort
   : ((): void => {
