@@ -113,7 +113,7 @@ const componentProcess = async (
         `Bundling ${entity} - ${name}... and copy content from ${outputDist} to ${componentDistDirectory}`
       );
       await execP(
-        `cd ${componentSourcesPath} && rm -rf dist ${componentDistDirectory} && npx cross-env NODE_ENV=${env} npm run build && npx copyfiles --up 1 "${outputDist}**/*" ${componentDistDirectory} && rm .generated`
+        `cd ${componentSourcesPath} && rm -rf dist ${componentDistDirectory} && npx cross-env NODE_ENV=${env} pnpm build && npx copyfiles --up 1 "${outputDist}**/*" ${componentDistDirectory} && rm .generated`
       );
       resolve({ name, entity, componentFullPath });
     } catch (e) {
@@ -129,8 +129,8 @@ const postProcess = async (
   console.log(color.blue, "Building mf-maestro.json...");
   const filterByType =
     (type: string) =>
-    ({ name }: fs.Dirent): boolean =>
-      extname(name).toLowerCase() === `.${type}`;
+      ({ name }: fs.Dirent): boolean =>
+        extname(name).toLowerCase() === `.${type}`;
   const bundlerConfig = await bluebird.reduce(
     results,
     async (
@@ -191,14 +191,14 @@ const postProcess = async (
           const jsFiles = jsFilesRaw.filter(filterByType("js"));
           const jsFile = options.jsentry
             ? jsFiles
-                .filter((file) => file.name.startsWith(options.jsentry))
-                .shift()
+              .filter((file) => file.name.startsWith(options.jsentry))
+              .shift()
             : jsFiles.shift();
           const manifestJs = jsFile
             ? {
-                ...baseManifest,
-                url: `${prefix}/${entity}/${mfName}/${jsFile.name}`,
-              }
+              ...baseManifest,
+              url: `${prefix}/${entity}/${mfName}/${jsFile.name}`,
+            }
             : baseManifest;
 
           const cssFilesRaw = await fs.readdir(componentDistDirectory, {
@@ -208,9 +208,9 @@ const postProcess = async (
           const cssFile = cssFiles.shift();
           const manifest = cssFile
             ? {
-                ...manifestJs,
-                css: `${prefix}/${entity}/${mfName}/${cssFile.name}`,
-              }
+              ...manifestJs,
+              css: `${prefix}/${entity}/${mfName}/${cssFile.name}`,
+            }
             : manifestJs;
 
           const realManifest = {

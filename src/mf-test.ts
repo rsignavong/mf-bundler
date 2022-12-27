@@ -32,7 +32,7 @@ const componentProcess = async (
 ): Promise<ComponentProcess> => {
   console.log(color.blue, `Testing ${entity}-${name}...`);
   try {
-    const syncResults = execSync(`cd ${componentFullPath} && npm test`, {
+    const syncResults = execSync(`cd ${componentFullPath} && pnpm test`, {
       stdio: "inherit",
     });
     return { name, entity, componentFullPath, syncResults };
