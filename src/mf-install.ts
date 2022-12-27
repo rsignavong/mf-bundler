@@ -1,4 +1,4 @@
-import { exec } from "child_process";
+import { execSync } from "child_process";
 import { program } from "commander";
 import { default as path } from "path";
 
@@ -31,7 +31,7 @@ const componentProcess = async (
   entitiesPath: string
 ): Promise<ComponentProcess> => {
   console.log(color.blue, `Installing dependencies ${entity}-${name}...`);
-  const proc = exec(
+  const proc = execSync(
     `cd ${componentFullPath} && pnpm i`,
     (error, stdout, stderr) => {
       if (error) {
