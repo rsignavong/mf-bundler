@@ -1,4 +1,6 @@
-import { execSync } from "child_process";
+import { exec } from "child_process";
+import os from "os";
+import bluebird from "bluebird";
 import { program } from "commander";
 import { default as path } from "path";
 
@@ -17,6 +19,8 @@ program
   )
   .parse(process.argv);
 
+const execP = bluebird.promisify(exec);
+
 const options = program.opts();
 const programPath = options.path || "apps";
 const componentsPath = programPath.endsWith("/")
@@ -24,23 +28,26 @@ const componentsPath = programPath.endsWith("/")
   : path.join(programPath, "/");
 const targetEntity = options.entity;
 
+const maxWorkers = os.cpus().length - 1;
+const nbWorker = parseInt(options.worker) || maxWorkers;
+const concurrency = Math.max(nbWorker > maxWorkers ? maxWorkers : nbWorker, 1);
+
 const componentProcess = async (
   name: string,
   entity: string,
   componentFullPath: string,
   entitiesPath: string
 ): Promise<ComponentProcess> => {
-  console.log(color.blue, `Installing dependencies ${entity}-${name}...`);
-  const proc = execSync(
-    `cd ${componentFullPath} && pnpm i`,
-    (error, stdout, stderr) => {
-      if (error) {
-        console.log(color.red, error);
-        process.exit(1);
-      }
+  return new Promise(async (resolve, reject) => {
+    try {
+      console.log(color.blue, `Installing dependencies ${entity}-${name}...`);
+      await execP(`cd ${componentFullPath} && pnpm i`);
+
+      resolve({ name, entity, componentFullPath });
+    } catch (e) {
+      reject(e)
     }
-  );
-  return { name, entity, componentFullPath, process: proc };
+  });
 };
 
 getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
@@ -49,6 +56,7 @@ getGlobalBundlerConfig(targetEntity).then((mfEntities: MfEntity[]) => {
     componentProcess,
     componentsPath,
     mfEntities,
+    concurrency
   };
   return Promise.all(command(config));
 });
