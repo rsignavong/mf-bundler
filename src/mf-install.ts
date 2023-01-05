@@ -41,7 +41,7 @@ const componentProcess = async (
   return new Promise(async (resolve, reject) => {
     try {
       console.log(color.blue, `Installing dependencies ${entity}-${name}...`);
-      await execP(`cd ${componentFullPath} && pnpm i`);
+      await execP(`cd ${componentFullPath} && npm i`);
 
       resolve({ name, entity, componentFullPath });
     } catch (e) {
