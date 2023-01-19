@@ -111,7 +111,7 @@ const postProcess = async (
     );
     console.log(
       color.blue,
-      `Copy projects files to ${partitionAlliumSystemDirectory}`
+      `Prepare partition ${partitionDir}`
     );
     await execP(`npx copyfiles --all * ${partitionAlliumSystemDirectory}`);
 
@@ -120,7 +120,7 @@ const postProcess = async (
       await bluebird.map(Object.entries(mfPathsByEntity), async ([entity, mfPaths]) => {
         const entityPartitionDir = path.join(partitionDirectory, entity);
         await fs.mkdirp(entityPartitionDir);
-        console.log(color.blue, `Copy \n${mfPaths.join("\n  ")}\n    -> ${entityPartitionDir}\n`);
+        console.log(color.blue, `Copy ${entity}\n  ${mfPaths.join("\n  ")}\n    -> ${entityPartitionDir}`);
         const mfsPath = mfPaths.map((mfPath) => path.join(componentsPath, mfPath)).join(" ");
         return execP(`cp -RP ${mfsPath} ${entityPartitionDir}`);
       });
