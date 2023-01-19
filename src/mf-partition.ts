@@ -52,10 +52,10 @@ const getMinPartitionQueue = (
   partitionQueues: PartitionQueues
 ): [string, string[]] => {
   return Object.entries(partitionQueues).reduce(
-    ([prevPartition, prevQueues], [currPartition, currrQueues]) => {
-      return prevQueues.length < currrQueues.length
+    ([prevPartition, prevQueues], [currPartition, currQueues]) => {
+      return prevQueues.length < currQueues.length
         ? [prevPartition, prevQueues]
-        : [currPartition, currrQueues];
+        : [currPartition, currQueues];
     }
   );
 };
@@ -92,14 +92,14 @@ const postProcess = async (
       [entity, bundlerConfigs]: [string, BundlerByEntity[]]
     ): PartitionQueues => {
       const [partition, queue] = getMinPartitionQueue(partitionQueues);
-      const mfs = bundlerConfigs.map(({ mfName }) => `${entity}/${mfName}`);
-      const newQueue = queue.concat(mfs);
+      const entityMfPaths = bundlerConfigs.map(({ mfName }) => `${entity}/${mfName}`);
+      const newQueue = queue.concat(entityMfPaths);
       return { ...partitionQueues, [partition]: newQueue };
     },
     partitionQueues
   );
 
-  for (const [partitionDir, mfs] of Object.entries(fullPartitionQueues)) {
+  for (const [partitionDir, entityMfPaths] of Object.entries(fullPartitionQueues)) {
     const partitionAlliumSystemDirectory = path.join(
       process.cwd(),
       partitionDir,
@@ -111,20 +111,19 @@ const postProcess = async (
     );
     console.log(
       color.blue,
-      `Creating partition directory ${partitionDirectory}`
-    );
-    await fs.mkdirp(partitionDirectory);
-
-    console.log(
-      color.blue,
       `Copy projects files to ${partitionAlliumSystemDirectory}`
     );
     await execP(`npx copyfiles --all * ${partitionAlliumSystemDirectory}`);
 
-    if (mfs.length > 0) {
-      console.log(color.blue, `Copy ${mfs.join(" ")} to ${partitionDirectory}`);
-      const mfsPath = mfs.map((mf) => path.join(componentsPath, mf)).join(" ");
-      await execP(`cp -RP ${mfsPath} ${partitionDirectory}`);
+    if (entityMfPaths.length > 0) {
+      const mfPathsByEntity = groupBy(entityMfPaths, (entityMfPath) => entityMfPath.split('/')[0]);
+      await bluebird.map(Object.entries(mfPathsByEntity), async ([entity, mfPaths]) => {
+        const entityPartitionDir = path.join(partitionDirectory, entity);
+        await fs.mkdirp(entityPartitionDir);
+        console.log(color.blue, `Copy \n${mfPaths.join("\n  ")}\n    -> ${entityPartitionDir}\n`);
+        const mfsPath = mfPaths.map((mfPath) => path.join(componentsPath, mfPath)).join(" ");
+        return execP(`cp -RP ${mfsPath} ${entityPartitionDir}`);
+      });
     } else {
       console.log(color.blue, `No MF to copy to ${partitionDirectory}`);
     }
